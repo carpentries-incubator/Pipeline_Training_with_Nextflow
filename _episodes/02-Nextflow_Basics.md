@@ -214,6 +214,64 @@ myFileChannel = Channel.fromPath( '/data/big/*.txt' )
 {: .language-javascript}
 
 Each row of a channel will spawn it's own job for each process.
+You can use `flatten` to turn a channel into a single column that will spawn on job each or `collect` to spawn a single job with all files.
+Here is an example to show this:
+
+```
+process make_files {
+   output:
+   file "file*.txt"
+
+   """for i in \$(seq 3); do touch file_\${i}.txt; done"""
+}
+
+process each_file {
+   echo true
+
+   input:
+   file each_file
+
+   """echo 'I have each file: ${each_file}'"""
+}
+
+process all_files {
+   echo true
+
+   input:
+   file all_files
+
+   """echo 'I have all files: ${all_files}'"""
+}
+
+workflow {
+   make_files()
+   each_file(make_files.out.flatten().view{"flatten: $it.baseName"})
+   all_files(make_files.out.collect().view{"collect: $it.baseName"})
+}
+```
+{: .language-javascript}
+
+Which will output:
+```
+N E X T F L O W  ~  version 22.03.1-edge
+Launching `channels.nf` [boring_magritte] DSL2 - revision: d6c334a8a0
+executor >  local (5)
+[2d/daa992] process > make_files    [100%] 1 of 1 ✔
+[b8/de87b0] process > each_file (3) [100%] 3 of 3 ✔
+[9d/c5d625] process > all_files     [100%] 1 of 1 ✔
+flatten: file_1
+collect: [file_1, file_2, file_3]
+flatten: file_2
+flatten: file_3
+I have all files: file_1.txt file_2.txt file_3.txt
+
+I have each file: file_1.txt
+
+I have each file: file_2.txt
+
+I have each file: file_3.txt
+```
+{: .output}
 You can combine and manipulate channels to hand your processes all the files it requires.
 Channel manipulation is likely the hardest part of nextflow so we have an entire section dedicated to it later on.
 
