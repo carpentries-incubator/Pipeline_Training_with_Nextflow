@@ -17,3 +17,5 @@ vendor/
 Gemfile.lock
 .*history
 .ruby-version
+code/work/
+code/.nextflow*
