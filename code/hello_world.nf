@@ -1,3 +1,5 @@
+#!/usr/bin/env nextflow
+
 params.message = "hello world"
 
 process make_file {

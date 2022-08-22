@@ -475,6 +475,8 @@ If the variable is job-dependent, you should turn it into a channel.
 
 You can use `params.<some_variable>` to define command line arguments.
 This is very useful for specifying where input files are or other constants.
+The equivalent command line argument uses two dashes like so `--<some_variable>`
+(two dashes are for pipeline variables and single dashes are for Nextflow variables like `-resume`).
 
 For example:
 ```
