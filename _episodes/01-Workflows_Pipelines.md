@@ -1,5 +1,5 @@
 ---
-title: "Nextflow Basics"
+title: "Workflows and Pipelines"
 teaching: 10
 exercises: 5
 questions:

@@ -1,5 +1,5 @@
 ---
-title: "Building a Pipeline"
+title: "Nextflow Orchestration"
 teaching: 10
 exercises: 5
 questions:

@@ -1,5 +1,5 @@
 ---
-title: "Nextflow Basics"
+title: "Introduction to Nextflow"
 teaching: 10
 exercises: 5
 questions:

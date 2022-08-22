@@ -1,5 +1,5 @@
 ---
-title: "Using Nextflow"
+title: "Nextflow Workflows"
 teaching: 10
 exercises: 5
 questions:
