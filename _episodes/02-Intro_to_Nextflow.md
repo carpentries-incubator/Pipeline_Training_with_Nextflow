@@ -7,21 +7,6 @@ questions:
 keypoints:
 -
 ---
-# What is a pipeline?
-A pipeline is a sequence of jobs that are executed to process data.
-Pipelines are often first planned out using flow charts to determine what order the tasks need to be performed, the dependencies, and the inputs and outputs.
-
-![pipeline_initial](../fig/pipeline_initial.png){: .width="400"}
-
-If a user manually executes each job, this is still a pipeline, but we should aim to automate as many of our pipelines as possible to save time.
-As pipelines grow, they often become complicated. It can be challenging to do the following:
-- Keep the pipeline clear, readable and maintainable
-- Track errors and rerun failed jobs
-- Benchmark jobs to find bottlenecks
-- Handle dependencies such as containers
-- Stop a pipeline, then resume where it left off
-
-To help with the above, it is best your use a pipeline language, such as Nextflow, to develop your pipelines.
 
 # What is Nextflow?
 According to its website:
@@ -33,6 +18,7 @@ Its fluent DSL simplifies the implementation and the deployment of complex paral
 # Documentation
 The documentation for Nextflow can be found [here](https://www.nextflow.io/docs/latest/index.html) and is an excellent resource. I have included links to the relevant sections of the documentation in the headers of this tutorial's sections. There is also a [basic patterns](https://nextflow-io.github.io/patterns/index.html#_basic_patterns) which has examples or basic pipeline problems which can be very useful for beginners. You can also ask for help on the [Nextflow slack channel](https://www.nextflow.io/slack-invite.html).
 
+<!-- Talk about all of the above again but in the context of Nextflow. -->
 # Nextflow components
 Pipelines can be described using flowcharts.
 Nextflow takes advantage of this by only requiring you to describe the parts of the flow chart, and Nextflow will put the pipeline together for you.
@@ -143,42 +129,6 @@ process pythonStuff {
 ```
 {: .language-javascript}
 
-### [Label](https://www.nextflow.io/docs/latest/process.html#label)
-You can label your process, which is a useful way to group your processes that need a similar configuration.
-For example, you could label all processes that require a particular container or need a lot of memory like so:
-
-```
-process bigTask {
-  label 'big_mem'
-
-  """
-  <task script>
-  """
-}
-```
-{: .language-javascript}
-
-We will explain how to take advantage of labels in the Nextflow Configuration lesson.
-
-### [publishDir](https://www.nextflow.io/docs/latest/process.html#publishdir)
-publishDir is used to output files to a directory outside the Nextflow work directory.
-For example:
-
-```
-process for {
-    publishDir '/home/data/'
-
-    output:
-    file 'science.data'
-
-    '''
-    echo "Some Science" > science.data
-    '''
-}
-```
-{: .language-javascript}
-
-This will output the science.data file to /home/data
 
 ## [Channel](https://www.nextflow.io/docs/latest/channel.html)
 Often files or variables are handed to and from processes. Think of them as the arrows in a flow diagram.
