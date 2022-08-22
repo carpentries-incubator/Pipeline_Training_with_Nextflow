@@ -7,4 +7,10 @@ questions:
 keypoints:
 -
 ---
-##
+## Making a --help
+
+## Explaining your operators
+
+## Making modular workflows
+
+## Error strategy
