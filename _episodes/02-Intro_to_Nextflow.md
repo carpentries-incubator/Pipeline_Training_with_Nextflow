@@ -28,8 +28,77 @@ The following is a simple example of how the components work together to create 
 
 ![pipeline_nextflow](../fig/pipeline_nextflow.png){: .width="400"}
 
+
+## Testing Nextflow commands
+In the following sections we will go through several examples and we encourage you to copy and paste the code and have a play with it.
+You can do this by either putting into a file and running that file using `nextflow run` or using `nextflow console`.
+`nextflow console` is an interactive console which is great for testing out channel manipulations.
+You can write on or more lines of code and press `Ctrl+r` to run it and see the output like so:
+
+![nextflow_console](../fig/nextflow_console.png){: .width="400"}
+
+
+## [Channel](https://www.nextflow.io/docs/latest/channel.html)
+Often files or variables are handed to and from processes. Think of them as the arrows in a flow diagram.
+
+You can create channels of values using `of`:
+
+```
+ch = Channel.of( 1, 3, 5, 7 )
+ch.view { "value: $it" }
+```
+{: .language-javascript}
+
+which will output:
+
+```
+value: 1
+value: 3
+value: 5
+value: 7
+```
+{: .output}
+
+You can create channels of files using `fromPath`:
+
+```
+myFileChannel = Channel.fromPath( '/data/some/bigfile.txt' )
+myFileChannel.view()
+```
+{: .language-javascript}
+
+which, as long as the file exists, will output:
+
+```
+/data/some/bigfile.txt
+```
+{: .output}
+
+You can also use wildcards to collect files:
+
+```
+myFileChannel = Channel.fromPath( '/data/big/*.txt' ).view()
+```
+{: .language-javascript}
+
+which could output someting like:
+
+```
+/data/some/example_1.txt
+/data/some/example_2.txt
+/data/some/example_3.txt
+```
+{: .output}
+
+
 ## Simple script
-Here is a simple example of a script called `hello_world.nf`
+
+Let's dive right in and make a simple pipeline that will make a file then print the contents.
+The flow chart for this pipeline will look like this:
+
+![simple_script](../fig/simple_script.png){: .width="400"}
+
+Here is how we would turn it into a pipeline as a script called `hello_world.nf`
 
 ```
 params.message = "hello world"
@@ -85,98 +154,49 @@ HELLO WORLD
 You can see that each process is run once and outputs the capitalised message to the terminal.
 
 
-## [Process](https://www.nextflow.io/docs/latest/process.html)
-Documentation: https://www.nextflow.io/docs/latest/process.html
-A process is a job you would like to include in your pipeline.
-It is written in bash by default and can have inputs and outputs.
+## Why do we want to manipulate Channels?
 
-Here is the syntax:
+Manipulating channels is the most difficult parts of Nextlflow but it allows us create any type of pipeline.
+Each row of a channel will spawn its own job for each process, so the shape of the channel dictates how many jobs are launched and what inputs each job has.
 
+So we have a channel of three files like so:
 ```
-process < name > {
-
-   [ directives ]
-
-   input:
-    < process inputs >
-
-   output:
-    < process outputs >
-
-   when:
-    < condition >
-
-   [script|shell|exec]:
-   < user script to be executed >
-
-}
+Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).view()
 ```
 {: .language-javascript}
-
-By default, the process will be executed as a bash script, but you can easily add the languages shebang to the first line of the script.
-For example, you could write a python process like so:
-
 ```
-process pythonStuff {
-    """
-    #!/usr/bin/python
-
-    x = 'Hello'
-    y = 'world!'
-    print(f"{x} {y}")
-    """
-}
-```
-{: .language-javascript}
-
-
-## [Channel](https://www.nextflow.io/docs/latest/channel.html)
-Often files or variables are handed to and from processes. Think of them as the arrows in a flow diagram.
-
-You can create channels of values using `of`:
-
-```
-ch = Channel.of( 1, 3, 5, 7 )
-ch.view { "value: $it" }
-```
-{: .language-javascript}
-
-which will output:
-
-```
-value: 1
-value: 3
-value: 5
-value: 7
+/home/nick/code/Nextflow_Training_2022B/code/file_1.txt
+/home/nick/code/Nextflow_Training_2022B/code/file_2.txt
+/home/nick/code/Nextflow_Training_2022B/code/file_3.txt
 ```
 {: .output}
 
-You can create channels of files using `fromPath`:
-
+We have three rows with one file each. So if we input this to a process it would create three jobs.
+If we instead wanted to create a single job that has access to all three files we can use the [`collect`](https://www.nextflow.io/docs/latest/operator.html#collect) operator like so:
 ```
-myFileChannel = Channel.fromPath( '/data/some/bigfile.txt' )
-```
-{: .language-javascript}
-
-or with wildcards:
-
-```
-myFileChannel = Channel.fromPath( '/data/big/*.txt' )
+Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).collect().view()
 ```
 {: .language-javascript}
+```
+[/home/nick/code/Nextflow_Training_2022B/code/file_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3.txt]
+```
+{: .output}
+So now we have a single row of files. Just for fun, we can even use [`flatten`](https://www.nextflow.io/docs/latest/operator.html#flatten) to "flatten" them back to one file per row:
 
+```
+Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).collect().flatten().view()
+```
+{: .language-javascript}
+```
+/home/nick/code/Nextflow_Training_2022B/code/file_1.txt
+/home/nick/code/Nextflow_Training_2022B/code/file_2.txt
+/home/nick/code/Nextflow_Training_2022B/code/file_3.txt
+```
+{: .output}
 
-## [Operators](https://www.nextflow.io/docs/latest/operator.html#)
-Each row of a channel will spawn its own job for each process, and you can use
-[Operators](https://www.nextflow.io/docs/latest/operator.html#) to manipulate channels to create your desired pipeline.
+## Channel Manipulation Example
 
-
-Channel manipulation is likely the most challenging part of Nextflow, so we will go through some of the most useful operators and use them for progressively more complicated examples.
-
-
-### [flatten](https://www.nextflow.io/docs/latest/operator.html#flatten) and [collect](https://www.nextflow.io/docs/latest/operator.html#collect)
-You can use `flatten` to turn a channel into a single column that will spawn one job each or `collect` to spawn a single job with all files.
-Here is an example to show this:
+Let's see what this channel manipulation looks like in a full workflow:
 
 ```
 process make_files {
@@ -206,8 +226,8 @@ process all_files {
 
 workflow {
    make_files()
-   each_file(make_files.out.flatten().view{"flatten: $it.baseName"})
-   all_files(make_files.out.collect().view{"collect: $it.baseName"})
+   each_file(make_files.out.flatten())
+   all_files(make_files.out.collect())
 }
 ```
 {: .language-javascript}
@@ -220,10 +240,6 @@ executor >  local (5)
 [2d/daa992] process > make_files    [100%] 1 of 1 ✔
 [b8/de87b0] process > each_file (3) [100%] 3 of 3 ✔
 [9d/c5d625] process > all_files     [100%] 1 of 1 ✔
-flatten: file_1
-collect: [file_1, file_2, file_3]
-flatten: file_2
-flatten: file_3
 I have all files: file_1.txt file_2.txt file_3.txt
 
 I have each file: file_1.txt
@@ -234,7 +250,48 @@ I have each file: file_3.txt
 ```
 {: .output}
 
-The `view` operator shows how the `flatten` and `collect` operators transformed the channels, and the output of the processes helps describe how many jobs are spawned.
+We can see from the process information that three instances of each_file was run:
+```
+[b8/de87b0] process > each_file (3) [100%] 3 of 3 ✔
+```
+{: .output}
+
+Which had one file each:
+
+```
+I have each file: file_1.txt
+
+I have each file: file_2.txt
+
+I have each file: file_3.txt
+```
+{: .output}
+
+And all_files ran once:
+
+```
+[9d/c5d625] process > all_files     [100%] 1 of 1 ✔
+```
+{: .output}
+
+With access to all three files:
+
+```
+I have all files: file_1.txt file_2.txt file_3.txt
+```
+{: .output}
+
+
+
+
+
+## [Operators](https://www.nextflow.io/docs/latest/operator.html#)
+Now that we know how to make simple pipelines, lets delve into [Operators](https://www.nextflow.io/docs/latest/operator.html#) to manipulate channels to create your desired pipeline.
+
+
+Channel manipulation is likely the most challenging part of Nextflow, so we will go through some of the most useful operators and use them for progressively more complicated examples.
+
+
 
 
 ### [map](https://www.nextflow.io/docs/latest/operator.html#map)
@@ -417,6 +474,52 @@ I have file_1_s_one.txt and file_1_s_two.txt
 ```
 {: .output}
 
+
+
+
+## [Process](https://www.nextflow.io/docs/latest/process.html)
+Documentation: https://www.nextflow.io/docs/latest/process.html
+A process is a job you would like to include in your pipeline.
+It is written in bash by default and can have inputs and outputs.
+
+Here is the syntax:
+
+```
+process < name > {
+
+   [ directives ]
+
+   input:
+    < process inputs >
+
+   output:
+    < process outputs >
+
+   when:
+    < condition >
+
+   [script|shell|exec]:
+   < user script to be executed >
+
+}
+```
+{: .language-javascript}
+
+By default, the process will be executed as a bash script, but you can easily add the languages shebang to the first line of the script.
+For example, you could write a python process like so:
+
+```
+process pythonStuff {
+    """
+    #!/usr/bin/python
+
+    x = 'Hello'
+    y = 'world!'
+    print(f"{x} {y}")
+    """
+}
+```
+{: .language-javascript}
 
 ## Variable
 Variables are easy to declare and similar to other languages.
