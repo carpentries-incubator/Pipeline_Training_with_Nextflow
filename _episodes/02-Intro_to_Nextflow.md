@@ -317,15 +317,31 @@ where `it` describes each item as `map` iterates over the channel. This will out
 ```
 {: .output}
 
+You can use `map` to manipulate multi column rows in different ways:
+
+```
+Channel
+    .from( [1,'A_B'], [2,'B_C'], [3,'C_D'])
+    .map { it -> [ it[0], it[0] * it[0], it[1].split("_")[0], it[1].split("_")[1] ] }
+    .view()
+```
+{: .language-javascript}
+```
+[1, 1, A, B]
+[2, 4, B, C]
+[3, 9, C, D]
+```
+{: .output}
+
 ### [groupTuple](https://www.nextflow.io/docs/latest/operator.html#grouptuple)
 `groupTuple` is used to group channel items with the same key, which is the first item by default.
 
 For example:
 ```
 Channel
-     .from( [1,'A'], [1,'B'], [2,'C'], [3, 'B'], [1,'C'], [2, 'A'], [3, 'D'] )
-     .groupTuple()
-     .view()
+    .from( [1,'A'], [1,'B'], [2,'C'], [3, 'B'], [1,'C'], [2, 'A'], [3, 'D'] )
+    .groupTuple()
+    .view()
 ```
 {: .language-javascript}
 ```
@@ -335,65 +351,52 @@ Channel
 ```
 {: .output}
 
-Here is a full example that shows how you can group files by their file name:
+This operator is often used to group files by their name.
+So if we make some test files like so:
+
 ```
-process make_files {
-   output:
-   file "file*.txt"
+for i in \$(seq 3 ); do
+    for j in \$(seq 3 ); do
+        touch file_\${i}_s_\${j}.txt
+    done
+done
+```
+{: .language-bash}
 
-   """
-   for i in \$(seq 3 ); do
-       for j in \$(seq 3 ); do
-           touch file_\${i}_s_\${j}.txt
-       done
-   done
-   """
-}
+We can use `map` to create a key based on the file name and then use `groupTuple` to group them together in any way you want.
+For example we can group them by the name before "_s_":
 
-process grouped_files {
-   echo true
-
-   input:
-   file grouped_files
-
-   """echo 'I have grouped files: ${grouped_files}'"""
-}
-
-workflow {
-   make_files()
-   grouped_files(
-       // Label the files with their prefix
-       make_files.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }.view().\
-       // Group the files by this prefix
-       groupTuple().map { it -> it[1] })
-
-}
+```
+Channel
+    .fromPath("file_*_s_*.txt")
+    // Create a prefix key and file pair
+    .map{ it -> [it.baseName.split("_s_")[0], it ] }.view{"step 1: $it"}
+    // Group the files by this prefix
+    .groupTuple().view{"step 2: $it"}
+    // Remove the key so it can be easily input into a process
+    .map{ it -> it[1] }.view{"step 3: $it"}
 ```
 {: .language-javascript}
 ```
-N E X T F L O W  ~  version 19.07.0
-Launching `channel_grouping.nf` [mad_payne] - revision: 57e54acb49
-executor >  local (4)
-[75/658db0] process > make_files        [100%] 1 of 1 ✔
-[1f/acc9e2] process > grouped_files (3) [100%] 3 of 3 ✔
-[file_1, /home/nick/code/nextflow_tutorial/work/75/658db0b849f97a10550148f917bb9c/file_1_s_1.txt]
-[file_1, /home/nick/code/nextflow_tutorial/work/75/658db0b849f97a10550148f917bb9c/file_1_s_2.txt]
-[file_1, /home/nick/code/nextflow_tutorial/work/75/658db0b849f97a10550148f917bb9c/file_1_s_3.txt]
-[file_2, /home/nick/code/nextflow_tutorial/work/75/658db0b849f97a10550148f917bb9c/file_2_s_1.txt]
-[file_2, /home/nick/code/nextflow_tutorial/work/75/658db0b849f97a10550148f917bb9c/file_2_s_2.txt]
-[file_2, /home/nick/code/nextflow_tutorial/work/75/658db0b849f97a10550148f917bb9c/file_2_s_3.txt]
-[file_3, /home/nick/code/nextflow_tutorial/work/75/658db0b849f97a10550148f917bb9c/file_3_s_1.txt]
-[file_3, /home/nick/code/nextflow_tutorial/work/75/658db0b849f97a10550148f917bb9c/file_3_s_2.txt]
-[file_3, /home/nick/code/nextflow_tutorial/work/75/658db0b849f97a10550148f917bb9c/file_3_s_3.txt]
-I have grouped files: file_2_s_1.txt file_2_s_2.txt file_2_s_3.txt
-
-I have grouped files: file_1_s_1.txt file_1_s_2.txt file_1_s_3.txt
-
-I have grouped files: file_3_s_1.txt file_3_s_2.txt file_3_s_3.txt
+step 1: [file_1, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_1.txt]
+step 1: [file_3, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_3.txt]
+step 1: [file_2, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_2.txt]
+step 1: [file_2, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_3.txt]
+step 1: [file_3, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_1.txt]
+step 1: [file_1, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_3.txt]
+step 1: [file_2, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_1.txt]
+step 1: [file_1, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_2.txt]
+step 1: [file_3, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_2.txt]
+step 2: [file_1, [/home/nick/code/Nextflow_Training_2022B/code/file_1_s_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_2.txt]]
+step 2: [file_3, [/home/nick/code/Nextflow_Training_2022B/code/file_3_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_2.txt]]
+step 2: [file_2, [/home/nick/code/Nextflow_Training_2022B/code/file_2_s_2.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_1.txt]]
+step 3: [/home/nick/code/Nextflow_Training_2022B/code/file_1_s_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_2.txt]
+step 3: [/home/nick/code/Nextflow_Training_2022B/code/file_3_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_2.txt]
+step 3: [/home/nick/code/Nextflow_Training_2022B/code/file_2_s_2.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_1.txt]
 ```
 {: .output}
 
-You can see that this example makes nine files, then assigns a key based on their file name before `_s_` and launches a job for each key.
+You can see that in the final steps we have grouped our files and this channel is ready to be given to a process that will create three jobs with three files each.
 
 ### [concat](https://www.nextflow.io/docs/latest/operator.html#concat)
 The `concat` operator concatenates items from two or more channels to a new channel in the same order they were specified in.
