@@ -478,7 +478,71 @@ I have file_1_s_one.txt and file_1_s_two.txt
 {: .output}
 
 
+## [splitCsv](https://www.nextflow.io/docs/latest/operator.html#splitcsv)
+CSVs are excellent ways to input data to your pipeline or even to hand data between processes.
+`splitCsv` can handle text and parse it to several rows:
 
+```
+Channel
+    .from( 'alpha,beta,gamma\n10,20,30\n70,80,90' )
+    .splitCsv()
+    .view()
+```
+{: .language-javascript}
+```
+[alpha, beta, gamma]
+[10, 20, 30]
+[70, 80, 90]
+```
+{: .output}
+
+You can also hand csv files directly to `splitCsv` which makes handling these files easy.
+A test CSV can be created with:
+
+```
+echo alpha,beta,gamma > test.csv; echo 10,20,30 >> test.csv; echo 70,80,90 >> test.csv
+```
+{: .language-bash}
+
+Then you can use the following operators to parse the CSV file:
+
+```
+Channel
+    .fromPath( 'test.csv' )
+    .splitCsv()
+    .view()
+```
+{: .language-javascript}
+```
+[alpha, beta, gamma]
+[10, 20, 30]
+[70, 80, 90]
+```
+{: .output}
+
+
+## [cross](https://www.nextflow.io/docs/latest/operator.html#cross)
+The `cross` operator allows you to combine the items of two channels in such a way that the items of the source channel are emitted along with the items emitted by the target channel for which they have a matching key.
+An example of when this is useful is when you need to launch a job for each pair of data files and candidates found in those data files.
+For example if you had two channels, the first the data files for each observation and a second channel with all of the candidates, we can combined them by using the observation ID as a common key:
+
+```
+source = Channel.from( ['obs1', 'obs1.dat'], ['obs2', 'obs2.dat'] )
+target = Channel.from( ['obs1', 'obs1_cand1.dat'], ['obs1', 'obs1_cand2.dat'], ['obs1', 'obs1_cand3.dat'], ['obs2', 'obs2_cand1.dat'] , ['obs2', 'obs2_cand2.dat'] )
+
+source.cross(target).view()
+```
+{: .language-javascript}
+```
+[[obs1, obs1.dat], [obs1, obs1_cand1.dat]]
+[[obs1, obs1.dat], [obs1, obs1_cand2.dat]]
+[[obs1, obs1.dat], [obs1, obs1_cand3.dat]]
+[[obs2, obs2.dat], [obs2, obs2_cand1.dat]]
+[[obs2, obs2.dat], [obs2, obs2_cand2.dat]]
+```
+{: .output}
+
+This can easily be maped to a process that will launch a job for each observation data file and candidate information.
 
 ## [Process](https://www.nextflow.io/docs/latest/process.html)
 Documentation: https://www.nextflow.io/docs/latest/process.html
