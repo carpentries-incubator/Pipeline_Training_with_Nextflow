@@ -211,6 +211,49 @@ the SLURM SBATCH commands in the header,
 the modules you load,
 and the container command (singularity or docker).
 
+### Finding jobs using a trace report
+If you find a job that wasn't the most recent, the easiest way to find it using the [trace report](https://www.nextflow.io/docs/latest/tracing.html#trace-report).
+To output a a trace report use the `-with-trace` command line option like so:
+
+```
+nextflow run <pipeline name> -with-trace
+```
+{: .language-bash}
+
+This will output a file named `trace.txt` which will output a tab seperated file but for readability I have converted it to a table:
+
+task_id | hash | native_id | name | status | exit | submit | duration | realtime | %cpu | peak_rss | peak_vmem | rchar | wchar
+---|---|---|---|---|---|---|---|---|---|---|---|---|---
+2 | 77/9d803f | 30901 | get_version | CACHED | 0 | 2022-04-12 16:04:06.504 | 832ms | 5ms | 76.9% | 0 | 0 | 55 KB | 229 B
+3 | d7/b13e5b | 330369 | bane_raw (1) | CACHED | 0 | 2022-04-14 15:33:31.335 | 1.8s | 1s | 95.2% | 11.1 MB | 16.1 MB | 8.1 MB | 91.2 KB
+4 | fc/1941a3 | 330938 | bane_raw (2) | CACHED | 0 | 2022-04-14 15:33:32.308 | 1.5s | 966ms | 99.9% | 11.1 MB | 16.1 MB | 8.1 MB | 91.2 KB
+5 | be/adec6e | 331297 | bane_raw (3) | CACHED | 0 | 2022-04-14 15:33:33.181 | 1.5s | 961ms | 99.9% | 10.7 MB | 16.1 MB | 8.1 MB | 91.2 KB
+6 | c2/ba3e2e | 348200 | initial_sfind (1) | COMPLETED | 0 | 2022-04-14 16:14:31.258 | 3.4s | 2.6s | 92.8% | 166.8 MB | 2 GB | 33.8 MB | 96.1 KB
+8 | 5c/67bac7 | 348867 | initial_sfind (3) | COMPLETED | 0 | 2022-04-14 16:14:34.678 | 3s | 2.4s | 96.3% | 166.6 MB | 2 GB | 33.8 MB | 96 KB
+7 | 30/29f5ee | 349396 | initial_sfind (2) | COMPLETED | 0 | 2022-04-14 16:14:37.689 | 3.1s | 2.5s | 94.0% | 166.9 MB | 2 GB | 33.8 MB | 96 KB
+1 | 22/f4e019 | 348175 | download_gleam_catalogue | COMPLETED | 0 | 2022-04-14 16:14:31.240 | 18.3s | 17.5s | 25.0% | 264.7 MB | 1.1 GB | 9.8 MB | 44.3 MB
+9 | db/d98083 | 350074 | fits_warp (1) | COMPLETED | 0 | 2022-04-14 16:14:49.549 | 7.1s | 5.6s | 84.2% | 305.7 MB | 5.2 GB | 55.3 MB | 776.3 KB
+10 | 23/fb45cc | 350082 | fits_warp (2) | COMPLETED | 0 | 2022-04-14 16:14:49.552 | 7.2s | 5.6s | 85.3% | 305.2 MB | 5.2 GB | 55.3 MB | 775.9 KB
+11 | 6a/48bd36 | 352365 | fits_warp (3) | COMPLETED | 0 | 2022-04-14 16:14:56.643 | 6.5s | 5.3s | 87.7% | 547.6 MB | 9.8 GB | 55.3 MB | 826.4 KB
+12 | 29/304cf8 | 353616 | make_mean_image | COMPLETED | 0 | 2022-04-14 16:15:03.106 | 749ms | 117ms | 98.8% | 3.2 MB | 5.6 MB | 677.3 KB | 408.3 KB
+13 | e9/fe10ba | 353955 | bane_mean_image | COMPLETED | 0 | 2022-04-14 16:15:03.865 | 2.2s | 1.6s | 94.9% | 102.4 MB | 3 GB | 8.1 MB | 102.5 KB
+14 | 05/3b2508 | 354339 | sfind_mean_image | COMPLETED | 0 | 2022-04-14 16:15:06.029 | 3.6s | 3s | 96.6% | 167.2 MB | 2 GB | 33.8 MB | 99.2 KB
+15 | 2d/10b294 | 354796 | mask_images (1) | COMPLETED | 0 | 2022-04-14 16:15:09.677 | 2.4s | 1.4s | 93.1% | 103.9 MB | 1.7 GB | 21.4 MB | 45.6 KB
+17 | 06/8f74e6 | 354808 | mask_images (2) | COMPLETED | 0 | 2022-04-14 16:15:09.683 | 2.5s | 1.5s | 94.9% | 96.8 MB | 1.7 GB | 21.4 MB | 45.6 KB
+20 | e8/cc1f75 | 355540 | mask_images (3) | COMPLETED | 0 | 2022-04-14 16:15:12.093 | 2s | 1.3s | 95.7% | 118.6 MB | 1.7 GB | 21.4 MB | 45.6 KB
+16 | ec/a0a5b8 | 355611 | source_monitor (1) | COMPLETED | 0 | 2022-04-14 16:15:12.189 | 4.3s | 3.7s | 96.8% | 165.4 MB | 2 GB | 44.4 MB | 118.5 KB
+18 | 6d/f0d725 | 356204 | source_monitor (3) | COMPLETED | 0 | 2022-04-14 16:15:14.077 | 4.2s | 3.6s | 96.8% | 166.6 MB | 18.3 GB | 44.4 MB | 118.5 KB
+19 | d9/c3773c | 356757 | source_monitor (2) | COMPLETED | 0 | 2022-04-14 16:15:16.499 | 4.5s | 3.8s | 96.5% | 166.8 MB | 18.3 GB | 44.4 MB | 118.5 KB
+21 | c9/7bd0b6 | 357308 | sfind_masked (1) | COMPLETED | 0 | 2022-04-14 16:15:18.233 | 4.6s | 4s | 96.2% | 167.4 MB | 2 GB | 56 MB | 102.1 KB
+22 | a7/115d00 | 357951 | sfind_masked (2) | COMPLETED | 0 | 2022-04-14 16:15:20.968 | 4.5s | 3.8s | 96.5% | 165.8 MB | 2 GB | 56 MB | 90.7 KB
+24 | c3/ea3979 | 358988 | join_fluxes | COMPLETED | 0 | 2022-04-14 16:15:25.461 | 1.3s | 698ms | 98.4% | 11.1 MB | 16.1 MB | 9.1 MB | 22.5 KB
+23 | 87/5fd3d6 | 358416 | sfind_masked (3) | COMPLETED | 0 | 2022-04-14 16:15:22.854 | 4.9s | 4.3s | 97.1% | 166.6 MB | 2 GB | 56 MB | 90.8 KB
+26 | b7/03301d | 359719 | compile_transients_candidates | COMPLETED | 0 | 2022-04-14 16:15:27.770 | 1.2s | 677ms | 95.2% | 10.7 MB | 16.1 MB | 8.9 MB | 17.3 KB
+25 | f3/6253e7 | 359393 | compute_stats | COMPLETED | 0 | 2022-04-14 16:15:26.781 | 2.6s | 1.9s | 95.4% | 41.8 MB | 851.8 MB | 23.3 MB | 21.5 KB
+27 | 2f/2f1f3b | 360080 | transients_plot | COMPLETED | 0 | 2022-04-14 16:15:28.993 | 2.3s | 1.6s | 97.8% | 70.5 MB | 1 GB | 21.1 MB | 172.9 KB
+28 | fc/33d0e0 | 360250 | plot_lc | COMPLETED | 0 | 2022-04-14 16:15:29.353 | 16.1s | 15.4s | 93.9% | 190.8 MB | 2.1 GB | 452.9 MB | 1.6 MB
+
+This can be used to find the hashes of all jobs with a certain name, with an FAILED status or baseh on the duration etc.
 
 
 ## How to debug a Nextflow Job
