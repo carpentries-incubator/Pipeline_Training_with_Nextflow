@@ -403,3 +403,26 @@ Launching `error_check.nf` [trusting_wing] DSL2 - revision: 1d0498de14
 {: .output}
 
 You can now see that instead of rerunning job, it cached the one job.
+
+
+
+### How do I output files? [publishDir](https://www.nextflow.io/docs/latest/process.html#publishdir)
+Unless specified, all files created by the pipeline will stay within the working directory.
+You can use `publishDir` to output files to a directory outside the Nextflow work directory.
+For example:
+
+```
+process for {
+    publishDir '/home/data/'
+
+    output:
+    file 'science.data'
+
+    '''
+    echo "Some Science" > science.data
+    '''
+}
+```
+{: .language-javascript}
+
+This will output the science.data file to /home/data
