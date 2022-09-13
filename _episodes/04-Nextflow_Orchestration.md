@@ -102,4 +102,151 @@ No such variable: test2
 
 As you can see it is able to find `params.test1` from the configuration file but not `test2`
 
+The configuration is organised into different scopes which can be accesed using a dot prefix or grouping using curly brackets.
+For example I can set the executor as local and only run up to two jobs at once (queueSize) either by:
+
+```
+executor.name = 'local'
+executor.queueSize = 2
+```
+{: .language-javascript}
+or
+```
+executor {
+    name = 'local'
+    queueSize = 2
+}
+```
+{: .language-javascript}
+
+
+## [Containers](https://www.nextflow.io/docs/latest/container.html#)
+Nextflow supports a variatey of containers but we will focus on Docker and Singularitry (Apptainer) containters.
+
+To test that these Nextflow is using a container, we will make a simple script that outputs the location of the python executable:
+
+> ## `container.nf`
+> ~~~
+> process python_location {
+>     output:
+>         stdout
+>     """
+>     #!/usr/bin/env python
+>     import os
+>     import sys
+>
+>     print(os.path.realpath(sys.executable))
+>     """
+> }
+>
+> workflow {
+>     python_location()
+>     python_location.out.view()
+> }
+> ~~~
+> {: .language-javascript}
+{: .callout}
+
+If you run this script before loadin containters you should see an output like this:
+```
+N E X T F L O W  ~  version 22.03.1-edge
+Launching `container.nf` [mad_ardinghelli] DSL2 - revision: 661db7f1f7
+executor >  local (1)
+[4d/d0b2f0] process > python_location [100%] 1 of 1 ✔
+/home/nick/installed_software/anaconda3/bin/python3.9
+```
+{: .output}
+
+You can see that my python executable is located at `/home/nick/installed_software/anaconda3/bin/python3.9`
+
+
+### [Docker](https://www.nextflow.io/docs/latest/container.html#docker)
+For our docker test image we shall [python](https://hub.docker.com/_/python) and to make it clear that the image has a different python version we will use v3.3.5.
+To do this add the following to your `nextflow.config`
+
+> ## `nextflow.config`
+> ~~~
+> process.container = 'python:3.3.5'
+> docker.enabled = true
+> ~~~
+> {: .language-javascript}
+{: .callout}
+
+If you have Docker installed and setup you should be able to rerun `container.nf` and Nextflow will download the image for you and use it:
+```
+N E X T F L O W  ~  version 22.03.1-edge
+Launching `container.nf` [shrivelled_lorenz] DSL2 - revision: 661db7f1f7
+executor >  local (1)
+[d7/701e56] process > python_location [100%] 1 of 1 ✔
+/usr/local/bin/python3.3
+```
+{: .output}
+
+You can see the v3.3 python executable is being used.
+
+### [Singularity](https://www.nextflow.io/docs/latest/container.html#singularity)
+Singularity (recently renamed as Apptainer) is designed for HPC usage so it is not worth installing on your local machine.
+You can load Singularity on Pawsey using:
+```
+module load singularity/3.7.4
+```
+{: .language-bash}
+
+and on Ozstar using:
+```
+module load apptainer/latest
+```
+{: .language-bash}
+
+Using a singularity image is similar to Docker but you must point to the Singularity container file:
+> ## `nextflow.config`
+> ~~~
+> process.container = '/path/to/singularity.img'
+> singularity.enabled = true
+> ~~~
+> {: .language-javascript}
+{: .callout}
+
+If you have many containers of your dependancies with multiple versions you may want to organise all versions of a dependancy into a single directory like so:
+```
+.
+├── presto
+│   ├── development.img
+│   └── latest.img
+└── python
+    ├── 3.3.img
+    └── 3.7.img
+```
+
+
+## Setting up process configuration based on labels
+Lets say your pipeline wants to run on a supercomputer that uses the SLURM scheduler and you have some jobs that are memory intensive and some that aren't.
+Because you're a responsible supercomputer user, you want to set up your jobs so that they request the memory that you require so you've labeled your processes with either `small_mem` or `large_mem`.
+You can set this up in the `nextflow.config` like so
+
+```
+// This is under the process scope
+process {
+    // The withLabel will apply the following to only the labeled processes
+    // The | can be treated as an OR when you want to use multiple labels
+    withLabel: 'small_mem|large_mem' {
+        // Comon setup for both labels
+        executor = 'slurm'
+        queue = 'workq'
+        cpus = 1
+    }
+    withLabel: small_mem {
+        // Small memory request
+        memory = "2 GB"
+    }
+    withLabel: large_mem {
+        // Large memory request
+        memory = "32 GB"
+    }
+    // This advised for all pipelines running on a shared file system (most supercomputers)
+    cache = 'lenient'
+}
+```
+{: .language-javascript}
+
 
