@@ -250,3 +250,106 @@ process {
 {: .language-javascript}
 
 
+In a similar what you can set up how Nextflow loads dependancies, say for a Python singularity image and software called presto that can be loaded using `module`.
+
+```
+process {
+    withLabel: python {
+        container = '/path/to/containter/python/3.7.img'
+    }
+    withLabel: preto {
+        beforeScript "module load presto"
+    }
+}
+```
+{: .language-javascript}
+
+Where [beforeScript](https://www.nextflow.io/docs/latest/process.html#beforescript) runs before the process which makes it ideal for loading the required software.
+
+
+## [Config profiles](https://www.nextflow.io/docs/latest/config.html#config-profiles)
+You can create sets of configuration attributes called profiles.
+These can be used declare a set up based on your current system:
+
+```
+profiles {
+
+    local {
+        process.executor = 'local'
+        params.basedir = '~'
+    }
+
+    pawsey {
+        process.executor = 'slurm'
+        params.basedir = '/astro'
+    }
+
+    ozstar {
+        process.executor = 'slurm'
+        params.basedir = '/fred'
+    }
+
+}
+```
+{: .language-javascript}
+
+And then declared on runtime like so:
+
+```
+nextflow run <your script> -profile pawsey
+```
+{: .language-bash}
+
+They are also useful if you have some standard parameters that you don't want to have to type out every time.
+```
+profiles {
+    big_job {
+        params.ncals = 10000
+        params.resolution = 0.1
+        process.memory = "32 GB"
+    }
+    quick_job {
+        params.ncals = 10
+        params.resolution = 5
+        process.memory = "2 GB"
+    }
+}
+```
+{: .language-javascript}
+
+## An alternative to profiles
+It can be annoying to always having to declare the profile you want to use on the command line.
+Instead you can make a default based on the `$HOSTNAME` environment variable which is normally consistent and only differs due to which of the log in nodes you have sshed into.
+For example Pawsey's Garrawarla cluster is either `garrawarla-1` or `garrawarla-2` and Ozstar is either `farnarkle1` or `farnarkle2`.
+So we can set up or `nextflow.config` like so:
+
+```
+// Remove the dashes because they break things later on
+host = "$HOSTNAME".replace("-", "")
+
+if ( host.startsWith("garrawarla") ) {
+    // Put all your garrawarla set up here
+
+    process {
+        withLabel: 'small_mem|large_mem' {
+            executor = 'slurm'
+            queue = 'workq'
+            cpus = 1
+        }
+        withLabel: small_mem {
+            memory = '2 GB'
+        }
+        withLabel: large_mem {
+            memory = '32 GB'
+        }
+        cache = 'lenient'
+    }
+}
+elif ( host.startsWith("ozstar") ) {
+    // Put all your ozstar set up here
+}
+else {
+    // No cluster hostname so assume you are running this locally
+    process.executor = 'local'
+
+}
