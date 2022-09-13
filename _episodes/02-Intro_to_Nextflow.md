@@ -631,55 +631,6 @@ process make_files {
 You can see we're labelling the output files with the observation ID for all jobs.
 
 
-## Workflow
-A workflow is a collection of processes that can help make your pipelines very modular.
-You are probably familiar with the unnamed workflow, which can be thought of as the main workflow for that script.
-You can create additional workflows in the format:
-
-```
-workflow workflow_name {
-    take:
-        some_channel
-        another_channel
-    main:
-        foo(some_channel)
-        bar(another_channel)
-    emit:
-        foo.out
-        bar.out
-}
-```
-{: .language-javascript}
-where `take` is the input channels, `main` are the workflow processes and `emit` is the output channels.
-
-You can split your pipeline into several workflows to help them become more modular.
-For example, you may have a module for processing raw data and another for searching for the processed data for a signal.
-You can use these workflows in several scripts that only process the raw data, search for a signal, or do both.
-
-Here is an example where we have a `process_module.nf` which contains a workflow called `process`, and we want to combine it with another workflow:
-
-```
-// import the workflow from the process_module.nf file
-include { process } from './process_module'
-
-workflow search {
-    take: processed_data
-    main:
-        find_signal(processed_data)
-        filter_cands(find_signal.out)
-    emit:
-        filter_cands.out
-}
-
-workflow {
-    take: data
-    main:
-        process(data)
-        search(process.out)
-}
-```
-{: .language-javascript}
-
 ## Configuration
 The configuration (normally held within the nextflow.config file) describes all the machine-dependent aspects of the pipeline.
 Use it to set up how you want to run your pipeline on your machine.
