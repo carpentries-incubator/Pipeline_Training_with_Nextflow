@@ -141,7 +141,7 @@ We can instead increase the number of retries and progressively give the process
 process retryIfFail {
   errorStrategy 'retry'
   maxRetries 2
-  memory { "${task.attempt * 10} GB"}
+  memory { task.attempt * 10.GB}
 
   script:
   <your command string here>
