@@ -18,7 +18,15 @@ Its fluent DSL simplifies the implementation and the deployment of complex paral
 # Documentation
 The documentation for Nextflow can be found [here](https://www.nextflow.io/docs/latest/index.html) and is an excellent resource. I have included links to the relevant sections of the documentation in the headers of this tutorial's sections. There is also a [basic patterns](https://nextflow-io.github.io/patterns/index.html#_basic_patterns) which has examples or basic pipeline problems which can be very useful for beginners. You can also ask for help on the [Nextflow slack channel](https://www.nextflow.io/slack-invite.html).
 
-<!-- Talk about all of the above again but in the context of Nextflow. -->
+
+# Testing Nextflow commands
+In the following sections we will go through several examples and we encourage you to copy and paste the code and have a play with it.
+You can do this by either putting into a file and running that file using `nextflow run` or using `nextflow console`.
+`nextflow console` is an interactive console which is great for testing out channel manipulations.
+You can write on or more lines of code and press `Ctrl+r` to run it and see the output like so:
+
+![nextflow_console](../fig/nextflow_console.png){: .width="400"}
+
 # Nextflow components
 Pipelines can be described using flowcharts.
 Nextflow takes advantage of this by only requiring you to describe the parts of the flow chart, and Nextflow will put the pipeline together for you.
@@ -27,15 +35,6 @@ In the following sections, we shall describe the basic components of Nextflow to
 The following is a simple example of how the components work together to create a pipeline.
 
 ![pipeline_nextflow](../fig/pipeline_nextflow.png){: .width="400"}
-
-
-## Testing Nextflow commands
-In the following sections we will go through several examples and we encourage you to copy and paste the code and have a play with it.
-You can do this by either putting into a file and running that file using `nextflow run` or using `nextflow console`.
-`nextflow console` is an interactive console which is great for testing out channel manipulations.
-You can write on or more lines of code and press `Ctrl+r` to run it and see the output like so:
-
-![nextflow_console](../fig/nextflow_console.png){: .width="400"}
 
 
 ## [Channel](https://www.nextflow.io/docs/latest/channel.html)
@@ -90,8 +89,107 @@ which could output someting like:
 ```
 {: .output}
 
+## [Process](https://www.nextflow.io/docs/latest/process.html)
+A process is a task you would like to include in your pipeline so it is the equivalent of a bubble in your flow chart.
+It is written in bash by default and can have inputs and outputs.
 
-## Simple script
+Here is the syntax:
+
+```
+process < name > {
+
+   [ directives ]
+
+   input:
+    < process inputs >
+
+   output:
+    < process outputs >
+
+   when:
+    < condition >
+
+   [script|shell|exec]:
+   < user script to be executed >
+
+}
+```
+{: .language-javascript}
+
+By default, the process will be executed as a bash script, but you can easily add the languages shebang to the first line of the script.
+For example, you could write a python process like so:
+
+```
+process pythonStuff {
+    """
+    #!/usr/bin/python
+
+    x = 'Hello'
+    y = 'world!'
+    print(f"{x} {y}")
+    """
+}
+```
+{: .language-javascript}
+
+## Variable
+Variables are easy to declare and similar to other languages.
+You should treat variables as constants as soon as the pipeline begins.
+If the variable is job-dependent, you should turn it into a channel.
+
+You can use `params.<some_variable>` to define command line arguments.
+This is very useful for specifying where input files are or other constants.
+The equivalent command line argument uses two dashes like so `--<some_variable>`
+(two dashes are for pipeline variables and single dashes are for Nextflow variables like `-resume`).
+
+For example:
+```
+params.input_dir = "/home/default/data/directory/"
+
+myFileChannel = Channel.fromPath( '${params.input_dir}/*csv' )
+```
+{: .language-javascript}
+
+This will create a channel of all the CSV files in `/home/default/data/directory/` by default, but this can also be changed by using
+```
+nextflow run example.nf --input_dir /some/other/directory/
+```
+{: .language-bash}
+Will instead use the CSVs in `/some/other/directory/`
+
+If something is constant throughout the pipeline, you can leave it as a variable.
+One example could be some sort of observation identifier or date:
+
+```
+params.observation_id = 'default1234'
+
+process make_files {
+   output:
+   file "*.txt"
+
+   """for i in \$(seq 3); do touch ${observation_id}_\${i}_s_one.txt; done"""
+}
+```
+{: .language-javascript}
+
+You can see we're labelling the output files with the observation ID for all jobs.
+
+
+## [Worflow](https://www.nextflow.io/docs/latest/dsl2.html#workflow)
+A workflow is a combination of processes that will include the entire workflow or a sub part of it (will be explained in a later section).
+This is where you will connect processes by their channels and and manipulate the channels so your pipeline runs in the required way.
+
+```
+workflow  {
+    a_process( channel.from('/some/data') )
+    another_process( a_process.out.collect() )
+}
+```
+{: .language-javascript}
+
+Note that we get output from processes with `.out`, if there are mutiple outputs from a process you can treat it like a list so if you want the first output channel grab it with `.out[0]`.
+
+# Simple script
 
 Let's dive right in and make a simple pipeline that will make a file then print the contents.
 The flow chart for this pipeline will look like this:
@@ -151,10 +249,55 @@ HELLO WORLD
 ```
 {: .output}
 
-You can see that each process is run once and outputs the capitalised message to the terminal.
+Huzzah, we have run our first script!.
+The output can be a bit confusing so lets go through it line by line.
+
+```
+N E X T F L O W  ~  version 22.03.1-edge
+```
+{: .output}
+This is the Nextflow version you are using, you are likely using a more recent version than this.
+
+```
+Launching `hello_world.nf` [romantic_linnaeus] DSL2 - revision: 1298655152
+```
+{: .output}
+This is the script you are running within the \`, this will show you the full path to the script if you're running it in a different directory.
+`[romantic_linnaeus]` is a random name Nextflow gives to the run, it will change every time you run it.
+`DSL2` is a Nextflow syntax extension which is now the default as it simlifies writing complex pipelines.
+The revision is a hex that nextflow gives your pipeline and will only change if you change the pipeline scripts.
+
+```
+executor >  local (2)
+```
+{: .output}
+This is a count of where the jobs where executed. In this example, two jobs were run locally.
+
+```
+[8a/8f3033] process > make_file [100%] 1 of 1 ✔
+```
+{: .output}
+`[8a/8f3033]` is an idnetifier of the last job this processed lanuched (we will go into this in more detail later).
+`process > make_file` this is the name of the process this line is describing.
+`[100%] 1 of 1 ✔` this describes how many of this process has been launched and how many have finished succesfully.
+
+```
+[72/4df67e] process > echo_file [100%] 1 of 1 ✔
+```
+{: .output}
+This is the same as the above but for the `echo_file` process.
+
+```
+HELLO WORLD
+```
+{: .output}
+This is the output of our pipeline.
+Normally we don't output anything for our pipeline to the command line (outside of debugging) but we saw it because we used `.view()`.
 
 
-## Why do we want to manipulate Channels?
+
+
+# Why do we want to manipulate Channels?
 
 Manipulating channels is the most difficult parts of Nextlflow but it allows us create any type of pipeline.
 Each row of a channel will spawn its own job for each process, so the shape of the channel dictates how many jobs are launched and what inputs each job has.
@@ -544,89 +687,4 @@ source.cross(target).view()
 
 This can easily be maped to a process that will launch a job for each observation data file and candidate information.
 
-## [Process](https://www.nextflow.io/docs/latest/process.html)
-Documentation: https://www.nextflow.io/docs/latest/process.html
-A process is a job you would like to include in your pipeline.
-It is written in bash by default and can have inputs and outputs.
-
-Here is the syntax:
-
-```
-process < name > {
-
-   [ directives ]
-
-   input:
-    < process inputs >
-
-   output:
-    < process outputs >
-
-   when:
-    < condition >
-
-   [script|shell|exec]:
-   < user script to be executed >
-
-}
-```
-{: .language-javascript}
-
-By default, the process will be executed as a bash script, but you can easily add the languages shebang to the first line of the script.
-For example, you could write a python process like so:
-
-```
-process pythonStuff {
-    """
-    #!/usr/bin/python
-
-    x = 'Hello'
-    y = 'world!'
-    print(f"{x} {y}")
-    """
-}
-```
-{: .language-javascript}
-
-## Variable
-Variables are easy to declare and similar to other languages.
-You should treat variables as constants as soon as the pipeline begins.
-If the variable is job-dependent, you should turn it into a channel.
-
-You can use `params.<some_variable>` to define command line arguments.
-This is very useful for specifying where input files are or other constants.
-The equivalent command line argument uses two dashes like so `--<some_variable>`
-(two dashes are for pipeline variables and single dashes are for Nextflow variables like `-resume`).
-
-For example:
-```
-params.input_dir = "/home/default/data/directory/"
-
-myFileChannel = Channel.fromPath( '${params.input_dir}/*csv' )
-```
-{: .language-javascript}
-
-This will create a channel of all the CSV files in `/home/default/data/directory/` by default, but this can also be changed by using
-```
-nextflow run example.nf --input_dir /some/other/directory/
-```
-Will instead use the CSVs in `/some/other/directory/`
-
-If something is constant throughout the pipeline, you can leave it as a variable.
-One example could be some sort of observation identifier or date:
-
-
-```
-params.observation_id = 'default1234'
-
-process make_files {
-   output:
-   file "*.txt"
-
-   """for i in \$(seq 3); do touch ${observation_id}_\${i}_s_one.txt; done"""
-}
-```
-{: .language-javascript}
-
-You can see we're labelling the output files with the observation ID for all jobs.
 
