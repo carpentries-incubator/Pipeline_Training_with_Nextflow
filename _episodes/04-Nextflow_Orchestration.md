@@ -230,7 +230,7 @@ process {
     // The withLabel will apply the following to only the labeled processes
     // The | can be treated as an OR when you want to use multiple labels
     withLabel: 'small_mem|large_mem' {
-        // Comon setup for both labels
+        // Common setup for both labels
         executor = 'slurm'
         queue = 'workq'
         cpus = 1
@@ -353,3 +353,5 @@ else {
     process.executor = 'local'
 
 }
+```
+{: .language-javascript}

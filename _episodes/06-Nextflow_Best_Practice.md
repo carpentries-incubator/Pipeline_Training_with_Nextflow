@@ -40,9 +40,10 @@ if ( params.help ) {
 
 As the above example shows you will have to manually indent your help (unless someone wants to share a nice trick?).
 It can be helpful to split your help into difference sections such as "Required arguments" to let users know the bare minimum they need to include to get the script running.
+
 You may have noticed that the defaults are declared with `$` (`[default: ${params.input_file}]`).
 This is a good habit to get into as your defaults may change based on the configuration you are using so the help can be used to help remind yourself of your current defaults.
-The example help aslo includes the `-w` which is a Nextflow param, not a user declared param, explaining some of these can be useful for users that aren't familiar with some of Nextflows arguments.
+The example help aslo includes the `-w` which is a Nextflow param, not a user declared param. Explaining some Nextflow parmas these can be useful for users that aren't familiar with some of Nextflows arguments.
 
 ## Explaining your operators
 
@@ -50,7 +51,7 @@ TODO
 
 ## Making modular workflows
 As you create several large pipelines, parts of your pipelines may be used in several places.
-To prevent having duplicate code which is harder to maintain, you can make your workflows modular.
+To prevent having duplicate code, which is harder to maintain, you can make your workflows modular.
 To understand how to do this lets first look into the full format of a [workflow](https://www.nextflow.io/docs/latest/dsl2.html#workflow).
 
 A workflow is a collection of processes that can help make your pipelines very modular.
@@ -135,7 +136,7 @@ process retryIfFail {
 {: .language-javascript}
 
 Which will retry the process once by default.
-Retrying something without changing anything and expecting different results will lead you to insanity.
+Some say insanity is doing the same thing and expecting a different result.
 We can instead increase the number of retries and progressively give the process more resources (RAM).
 ```
 process retryIfFail {
@@ -149,6 +150,6 @@ process retryIfFail {
 ```
 {: .language-javascript}
 
-In the above example we have used a closure (curly brackets) to give more memory to the process for each attempt.
+In the above example we have used a closure (curly brackets) to calculate how much memory to give to each attempt.
 So the process will ask for 10 GB, then 20 GB and finally 30 GB and if the job still fails with 30 GB then it stops the pipeline and outputs the error.
 
