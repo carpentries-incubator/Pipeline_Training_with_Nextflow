@@ -102,6 +102,12 @@ You can see at the bottom of the screen that we are now on a session called down
 We can detach (with `Ctrl+b` then `d`) and reattach (with `tmux attach-session -t download`), and you will still see the same display as when you detached.
 
 You can now make several sessions with different names and switch back and forth between them to check the progress of your pipelines.
+If you forget the names of your sessions you can use the following command to list them:
+
+```
+tmux ls
+```
+{: .language-bash}
 
 ### Screen
 `screen` is similar to `tmux`, so we will quickly go over the equivalent commands.
@@ -121,6 +127,16 @@ Then you can reattach it with
 screen -r <screen_name>
 ```
 {: .language-bash}
+
+You can use
+
+```
+screen -r
+```
+{: .language-bash}
+
+To attach to your sessions if you only have one or list all of your sessions.
+
 
 
 ## Where are each of these jobs running?
