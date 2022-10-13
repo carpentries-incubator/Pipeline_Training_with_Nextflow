@@ -154,7 +154,7 @@ If we change any of the container contents while it's running, these changes wil
 So whilst you could run the `ubuntu` container, install some software you wanted, and then run that software, you would need to reinstall it every time you ran the container.
 We'll see how to build containers with the software that we require in the next section.
 
-Containers are setup to be isolated from the host operating system, so that whilst you are within a container (eg you are running `docker -it ubuntu bash`) you cannot see your host operating system.
+Containers are setup to be isolated from the host operating system, so that whilst you are within a container (eg you are running `docker -it ubuntu bash`) you cannot see files or run programs from the host operating system.
 Any accidental/nefarious things you do within the container are "safe".
 However, if you have a script that you want to run, let's call it `do_things.py`, and you want it to run with the version of Python inside a docker container you need to find some way to get that script from your local machine into the container.
 
@@ -167,7 +167,7 @@ The first option can also be used to copy files *from* the container to your loc
 The second option is often best when you are developing code that needs to run within the container because you can use your favorite IDE on your local machine to work on the files, and then run them within the container without having to constantly copy things back and forth.
 
 > ## Mount a local directory into your container
->  `touch` a new file called `do_things.py` and add the following:
+>  On your machine, `touch` a new file called `do_things.py` and add the following:
 > ~~~
 > #! /usr/bin/env python
 > import socket
@@ -184,13 +184,13 @@ The second option is often best when you are developing code that needs to run w
 {: .challenge}
 
 In the above exercise you should see that the host name is some random string of letters and numbers, which is (hopefully) different from your local machines name.
-Note that when we are working inside the container we are working as `root`, which means we have *all the privelages*.
+Note that when we are working inside the container we are working as `root`, which means we have *all the privileges*.
 If you bind a local path to one inside the container, then you'll have `root` access to that path.
-So it's a good idea not to mount `/` inside the container!
+So it's a good idea **not** to mount `/` inside the container!
 Being `root` user inside the container also means that any files which you create in the mounted directory will be owned by root on your local machine.
 Having root privileges within the container is a big reason why you wont see docker being provided on an HPC.
 
-###TODO
+### TODO
 challenge to mount a directory within the container then run a given program without using `-it`
 figure out the mount/bind terminology of the above and be consistent.
 
@@ -198,21 +198,28 @@ figure out the mount/bind terminology of the above and be consistent.
 ## Building (docker) containers
 As well as using pre-made containers, you can build your own.
 Whilst it's possible to build a container from scratch, it's recommended that you start with a base layer and then add in what you need.
+In many ways, building a container is like installing software on your computer, except that you don't have an interactive prompt.
+If you can install software on your computer from the command line then you can build a docker container.
 
-Just like installing software on a linux distro
-No interactive prompts (use install -y)
-Containers are built in layers
-Starting points can be found on hub.docker.com
+A few things to note:
+- Containers are built in layers, with each layer being a container of it's own.
+- It is often best to start with a container that does most of what you want rather than something "empty" like `Ubuntu`.
+- Whatever files you put into the container during the build process will remain there during deployment.
+
+Docker containers are built according to instructions in a `Dockerfile`.
+An example is shown below:
 
 ~~~
+# Start with a container that already has Python v3.9 installed
 FROM python:3.9
 
+# Set some meta-data about this container
 LABEL maintainer="Paul Hancock <paul.hancock@curtin.edu.au>"
 
-# non-python dependencies
+# install non-python dependencies
 RUN apt update && \
     apt install -y openjdk-11-jdk swarp && \
-    apt-get autoremove -y && \
+    apt-get autoremove -y && \ # autoremove and clean will get rid of not-needed libraries and reduce the container size (a bit)
     apt-get clean
 
 # download a java library and make a wrapper script for it
@@ -222,7 +229,7 @@ RUN cd /usr/local/lib && wget http://www.star.bris.ac.uk/~mbt/stilts/stilts.jar 
 # work in this directory
 WORKDIR /tmp/build
 
-# add files from the current directory in to the build directory (requirements.txt)
+# add files from the current directory in to the build directory (all the files for the Robbie library)
 ADD . /tmp/build
 
 # install python dependencies, with specific versions specified for longevity, and Robbie scripts
@@ -231,21 +238,114 @@ RUN pip install -r requirements.txt && \
     python setup.py install && \
     rm -rf /tmp/build
 
-#  set the home directory to be /tmp
+# set the home directory to be /tmp so that we get fewer warnings from python libraries like matplotlib or astropy.
 ENV HOME=/tmp
 ~~~
 {: .language-docker}
 
-Each RUN creates a new layer
-Fewer layers are better
-Changing one item means rebuilding the layer
-Group layers
+Note the following from the above:
+- We use `apt install -y` to get around the interactive questions that `apt` would normally ask us (answer "yes" to all questions)
+- We use the `&&` to string multiple commands together so that we reduce the number of `RUN` statements that we need. This reduces the number of layers that are created.
+- We use the line continuation `\` after `&&` to make the file easier to read
+- Each of the layers created have a different use: one for 'system' libraries, one for the java library, and one for all the python code.
+- We have put the layer that is most likely to change last so that when we remake this container we can make use of previously created layers.
 
-
-
+To build the above container we run the following:
 ~~~
-$ touch Dockerfile requirements.txt
 $ docker build -t robbie:new .
 ...
+~~~
+{: .language-bash}
+
+Where we used `robbie` as the container name and `new` as the tag.
+Typically people use either a version number (eg, v1.0) or `latest` as the tag, but any string will be accepted.
+
+>## Let's build a container
+> Create a `Dockerfile` which will generate a container with this recipe:
+> - use python:3.8.5 as the base layer
+> - download the file [area_of_ngon.py](https://raw.githubusercontent.com/ADACS-Australia/KLuken_HPC_training_2022B/gh-pages/code/examples/area_of_ngon.py) into `/usr/bin`
+> - change the permissions of the above file to be executable
+> - set the default `WORKDIR` to be `/app`
+> - set the default command (`CMD`) to be the above script with `--help`
+> 
+> > ## Solution
+> > ~~~
+> > # use a pre-made container as base
+> > FROM python:3.8.5
+> > 
+> > # download the file into /user/bin and change permissions
+> > RUN cd /usr/bin &&\
+> >     wget https://raw.githubusercontent.com/ADACS-Australia/KLuken_HPC_training_2022B/gh-pages/code/examples/area_of_ngon.py &&\
+> >     chmod ugo+x area_of_ngon.py
+> > 
+> > # set the default work directory
+> > WORKDIR /app
+> > 
+> > # set the cmd (default program to run)
+> > CMD ["area_of_ngon.py", "--help"]
+> > ~~~
+> > {: .language-docker}
+> {: .solution}
+{: .challenge}
+
+> ## Build and run your container
+> Build like this:
+> ~~~
+> $ docker build -t test:latest .
+> ~~~
+> {: .language-bash}
+> Run it like this:
+> ~~~
+> $ docker run test
+> ~~~
+> {: .language-bash}
+> You can provide alternative commands by adding arguments:
+> ~~~
+> $ docker run test area_of_ngon.py 3
+> ~~~
+> {: .language-bash}
+{: .challenge}
+
+> ## Get the outputs from the container
+> The `area_of_ngon.py` script doesn't print anything to STDOUT when run, but instead will save the output to a file called `output.txt`
+> To access this file we need to bind our local directory to the working directory (`/app`) within the container.
+>
+> Run the container with the appropriate binding and view the output file.
+> > ## Solution
+> > ~~~
+> > $ docker run --mount type=bind,source="$(pwd)",target=/app test area_of_ngon.py 4
+> > $ cat output.txt
+> > ~~~
+> > {: .language-bash}
+> > ~~~
+> > A 4-gon inscribed within a unit circle has an area of 2.000 and a perimeter of 5.657
+> > ~~~
+> > {: .output}
+> {: .solution}
+{: .challenge}
+
+Managing all the binding and container selection can be a bit annoying so you might want to create some shortcuts or aliases for youself.
+If you are using a container within a bash script then you can set/use a variable to help you out:
+~~~
+# setup the container run command once
+container='docker run --mount type=bind,source="$(pwd)",target=/app test'
+
+# ... later on you can use it easily and without making the script hard to read
+${container} area_of_ngon.py 4
+~~~
+{: .language-bash}
+
+Of course, we won't need to mess around with this too much since we'll end up using NextFlow as our workflow manager and NextFlow will handle all the docker calls.
+
+## Making a singularirty image
+Rather than re-learning all the above for singularity, we can do some rather nice containerisation use to convert our docker containers into Singularity images.
+
+~~~
+docker run \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-v <destination image>:/output \
+--privileged -t --rm \
+singularityware/docker2singularity \
+<image:tag>
 ~~~
 {: .language-bash}
