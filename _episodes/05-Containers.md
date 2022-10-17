@@ -337,15 +337,132 @@ ${container} area_of_ngon.py 4
 
 Of course, we won't need to mess around with this too much since we'll end up using NextFlow as our workflow manager and NextFlow will handle all the docker calls.
 
-## Making a singularirty image
-Rather than re-learning all the above for singularity, we can do some rather nice containerisation use to convert our docker containers into Singularity images.
+## Making a singularity image
+Making singularity containers can be done in much the same way as with Docker (see [here](https://singularity-userdoc.readthedocs.io/en/latest/container_recipes.html#container-recipes) for info).
+However, rather than re-learning all the above for singularity, we can do some rather nice containerisation use to convert our docker containers into Singularity images.
 
+The following docker command will load a docker image (identified by `[image:tag]`) within which singularity has been installed.
+It will create a binding/mount for the docker socket so that singularity within the container can talk to the docker damon running on the host machine.
+Finally, it will run singularity to convert the existing docker container into a singularity container, saving it in `/output` (which is bound to a directory on your host machine `[destination dir]`).
 ~~~
 docker run \
 -v /var/run/docker.sock:/var/run/docker.sock \
--v <destination image>:/output \
+-v [destination dir]:/output \
 --privileged -t --rm \
 singularityware/docker2singularity \
-<image:tag>
+[image:tag]
 ~~~
 {: .language-bash}
+
+The singularity image file (`.sif` or `.img`) that you create with the above command is a portable format that you can move to other machines without having to remake or rebuild.
+This means that you can create docker images on your local machine, test and develop until you get things just right, and then use them to create a singularity image which you can copy to an HPC for use by you and others.
+
+> ## Make a singularity container
+> Create a singularity container called `test.sif` using the above syntax.
+> > ## Solution
+> > ~~~
+> > docker run \
+> > -v /var/run/docker.sock:/var/run/docker.sock \
+> > -v $(pwd)/test:/output \
+> > --privileged -t --rm \
+> > singularityware/docker2singularity \
+> > test:latest
+> > ~~~
+> > {: .language-bash}
+> > This will pull a new image to your machine the first time you run it.
+> > ~~~
+> > Image Format: squashfs
+> > Docker Image: test:latest
+> > 
+> > Inspected Size: 882 MB
+> > 
+> > (1/10) Creating a build sandbox...
+> > (2/10) Exporting filesystem...
+> > (3/10) Creating labels...
+> > (4/10) Adding run script...
+> > (5/10) Setting ENV variables...
+> > (6/10) Adding mount points...
+> > (7/10) Fixing permissions...
+> > (8/10) Stopping and removing the container...
+> > (9/10) Building squashfs container...
+> > INFO:    Starting build...
+> > INFO:    Creating SIF file...
+> > INFO:    Build complete: /tmp/test_latest-2022-10-17-806deabcb504.simg
+> > (10/10) Moving the image to the output folder...
+> >     306,089,984 100%  368.07MB/s    0:00:00 (xfr#1, to-chk=0/1)
+> > Final Size: 292MB
+> > ~~~
+> > {: .output}
+> > Note the name of the image will be `test_latest-2022-10-17-806deabcb504.simg` which you can rename.
+> > ~~~
+> > mv test/[long name].simg test.sif
+> > sudo chown ${USER} test.sif
+> > ~~~
+> > {: .language-bash}
+> {: .solution}
+{: .challenge}
+
+## Running singularity containers
+Running a singularity container is much like running a docker container, however instead of using the image `name:tag`, you can link directly to the image file.
+~~~
+singularity run [run options] [image path] [args]
+~~~
+{: .language-bash}
+Where `[run options]` are options for singularity run command, and `[args]` are arguments to the script which is run within the container.
+
+Singularity supports binding files/directories within the container to locations on the host machine, using the `--bind` or `-B` flag.
+
+Singularity offers multiple ways to interact with a container:
+- run - launch container an run a predefined script (eg `area_of_ngon.py --help`)
+- exec - launch container with custom commands (eg `area_of_ngon.py 4` or `python my_other_script.py`)
+- shell - drops you into an interactive shell within the container (similar to exec with `/usr/bin/bash` as args)
+
+> ## Run your singularity image
+> If you have access to either Pawsey or OzStar, attempt the following:
+> 1. Copy your `test.sif` file to your HPC of choice.
+> 2. Login to your HPC
+> 3. Use `module load` to load singularity/apptainer
+> 4. Try the singularity run/exec/shell commands on your container
+> 
+> > ## Example
+> > (For Pawsey)
+> > ~~~
+> > scp test.sif garrawarla:/astro/mwasci/phancock/.
+> > ssh garrawarla
+> > module load singularity
+> > singularity run test.sif
+> > ~~~
+> > {: .language-bash}
+> > ~~~
+> > usage: area_of_ngon.py [-h] [--out OUT] n
+> > 
+> > positional arguments:
+> >   n           Number of angles in our n-gon
+> > 
+> > optional arguments:
+> >   -h, --help  show this help message and exit
+> >   --out OUT   output file
+> > 
+> > ~~~
+> > {: .output}
+> > ~~~
+> > singularity cmd -B $PWD:/app test.sif area_of_ngon.py 4
+> > more output.txt
+> > ~~~
+> > {: .language-bash}
+> > ~~~
+> > A 4-gon inscribed within a unit circle has an area of 2.000 and a perimeter of 5.657
+> > ~~~
+> > {: .output}
+> > ~~~
+> > singularity shell test.sif
+> > ~~~
+> > {: .language-bash}
+> > ~~~
+> > Singularity>
+> > ~~~
+> > {: .output}
+> {: .solution}
+{: .challenge}
+
+Rather than dive deeper into singularity containers, we are going to let NextFlow do all the work for us in the next section.
