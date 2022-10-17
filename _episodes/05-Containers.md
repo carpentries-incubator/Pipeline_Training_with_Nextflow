@@ -190,10 +190,6 @@ So it's a good idea **not** to mount `/` inside the container!
 Being `root` user inside the container also means that any files which you create in the mounted directory will be owned by root on your local machine.
 Having root privileges within the container is a big reason why you wont see docker being provided on an HPC.
 
-### TODO
-challenge to mount a directory within the container then run a given program without using `-it`
-figure out the mount/bind terminology of the above and be consistent.
-
 
 ## Building (docker) containers
 As well as using pre-made containers, you can build your own.
