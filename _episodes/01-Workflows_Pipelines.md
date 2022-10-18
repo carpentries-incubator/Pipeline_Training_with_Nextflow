@@ -8,11 +8,6 @@ keypoints:
 -
 ---
 
-<!-- Talk about how much of the work that we do for research can be thought of in terms of a workflow or pipeline, how this can be visualised as a flowchart, and how we break things into blocks of work to be done, information/data that is passed between the blocks, and some optional flow control. -->
-
-<!-- Get people thinking about how data move through this workflow (a data driven workflow). -->
-
-<!-- Do a small exercise where people take some of their own work and map out a basic workflow, defining the tasks and what data flows between them -->
 ## What is a workflow?
 A workflow is a sequence of tasks that are executed to reach a desired goal.
 Workflows exist for humans to follow (eg, recipes for making pancakes) and for machines to follow (eg, scripts for turning tables into plots).
@@ -89,6 +84,23 @@ This in turn means that we need to have a better idea of how we map our inputs t
 > 
 {: .discussion}
 
+If you answered (2) in the above discussion then you are thinking about a **data-driven workflow**.
+In a data-driven workflow each of our tasks takes input data and transforms it to produce output which is then passed to the next task.
+The ordering of tasks is implicit in the input/output chain that is specified.
+
+We can plan our execution by traverse our workflow in two directions:
+1. Forward:
+   1. Start at the known inputs,
+   2. Transforming them into outputs which are then fed to the next task,
+   3. Repeating until you arrive at the desired output.
+2. Backward:
+   1.  Starting at the final product and asking what inputs are required, 
+   2.  Stepping back to see what is needed to make these inputs, 
+   3.  Repeating until we have inputs that already exist and then executing the workflow from this point forward.
+
+By traversing the our workflow in reverse our work plan can avoid processing data that is not required for the desired output.
+This is how [Make](https://www.gnu.org/software/make/) behaves and it can solve a lot of time when you modify and restart a workflow which has previously been run.
+ 
 ## An automated workflow
 If a user manually executes each job, this is still a pipeline, but we should aim to automate as many of our pipelines as possible to save time.
 As pipelines grow, they often become complicated. It can be challenging to do the following:
