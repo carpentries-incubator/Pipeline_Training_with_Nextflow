@@ -49,12 +49,12 @@ Docker is primarily used on computers where you have root access such as your la
 HPC facilities will not use Docker as it provides root access to the host system, and instead will use Singularity which does not.
 
 The two systems are largely interoperable - you can build a Docker container on your desktop, test it out in your workflow, and then convert it to a Singularity image for use on your HPC facility of choice.
-You can think of a container as a self container operating system which you can build with all the software that you need, which you can then deploy on any computer that you like.
+You can think of a container as a self contained operating system which you can build with all the software that you need, which you can then deploy on any computer that you like.
 In fact you don’t even need to know how to build the containers to use them as there are many available pre-built containers that you can use.
 Both systems provide an online repository for storing built containers: Docker has [DockerHub](https://hub.docker.com/), while Singularity uses [Singularity Container Services (SCS)](https://cloud.sylabs.io/).
 
-![DockerLogo]({{page.root}}{% link fig/Docker_logo.png%}){: width='100' align='left'} 
-Docker is easy to build, and van use on any computer where you have root access.
+![DockerLogo]({{page.root}}{% link fig/Docker_logo.png%}){: width='100' align='left'}
+Docker is easy to build, and can use on any computer where you have root access.
 Docker has clients for Linux, Windows, and MacOS, so it meets our portability requirement with ease.
 There are a large number of ready made containers that you can use as a starting point for your own container, available on docker hub.
 Often you don't even need to make your own container, you can just use an existing one right out of the box.
@@ -90,13 +90,13 @@ We will begin our journey by working with the "Hello World" docker container.
 > > ~~~
 > > Unable to find image 'hello-world:latest' locally
 > > latest: Pulling from library/hello-world
-> > 2db29710123e: Pull complete 
+> > 2db29710123e: Pull complete
 > > Digest: sha256:62af9efd515a25f84961b70f973a798d2eca956b1b2b026d0a4a63a3b0b6a3f2
 > > Status: Downloaded newer image for hello-world:latest
-> > 
+> >
 > > Hello from Docker!
 > > This message shows that your installation appears to be working correctly.
-> > 
+> >
 > > To generate this message, Docker took the following steps:
 > >  1. The Docker client contacted the Docker daemon.
 > >  2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
@@ -105,13 +105,13 @@ We will begin our journey by working with the "Hello World" docker container.
 > >     executable that produces the output you are currently reading.
 > >  4. The Docker daemon streamed that output to the Docker client, which sent it
 > >     to your terminal.
-> > 
+> >
 > > To try something more ambitious, you can run an Ubuntu container with:
 > >  $ docker run -it ubuntu bash
-> > 
+> >
 > > Share images, automate workflows, and more with a free Docker ID:
 > >  https://hub.docker.com/
-> > 
+> >
 > > For more examples and ideas, visit:
 > >  https://docs.docker.com/get-started/
 > > ~~~
@@ -134,10 +134,10 @@ Let's start with the `ubuntu` container, which contains a naked install of Ubunt
 > > ~~~
 > > Unable to find image 'ubuntu:latest' locally
 > > latest: Pulling from library/ubuntu
-> > cf92e523b49e: Pull complete 
+> > cf92e523b49e: Pull complete
 > > Digest: sha256:35fb073f9e56eb84041b0745cb714eff0f7b225ea9e024f703cab56aaa5c7720
 > > Status: Downloaded newer image for ubuntu:latest
-> > root@f13326d08c8a:/# 
+> > root@f13326d08c8a:/#
 > > ~~~
 > > {: .output}
 > {: .solution}
@@ -180,7 +180,7 @@ The second option is often best when you are developing code that needs to run w
 > docker run -it --mount type=bind,source="$(pwd)",target=/app python:3.8.5 bash
 > ~~~
 > {: .language-bash}
-> Navigate to the `/app` directory and run `python do_stuff.py`
+> Navigate to the `/app` directory and run `python do_things.py`
 {: .challenge}
 
 In the above exercise you should see that the host name is some random string of letters and numbers, which is (hopefully) different from your local machines name.
@@ -263,20 +263,20 @@ Typically people use either a version number (eg, v1.0) or `latest` as the tag, 
 > - change the permissions of the above file to be executable
 > - set the default `WORKDIR` to be `/app`
 > - set the default command (`CMD`) to be the above script with `--help`
-> 
+>
 > > ## Solution
 > > ~~~
 > > # use a pre-made container as base
 > > FROM python:3.8.5
-> > 
+> >
 > > # download the file into /user/bin and change permissions
 > > RUN cd /usr/bin &&\
 > >     wget https://raw.githubusercontent.com/ADACS-Australia/KLuken_HPC_training_2022B/gh-pages/code/examples/area_of_ngon.py &&\
 > >     chmod ugo+x area_of_ngon.py
-> > 
+> >
 > > # set the default work directory
 > > WORKDIR /app
-> > 
+> >
 > > # set the cmd (default program to run)
 > > CMD ["area_of_ngon.py", "--help"]
 > > ~~~
@@ -369,9 +369,9 @@ This means that you can create docker images on your local machine, test and dev
 > > ~~~
 > > Image Format: squashfs
 > > Docker Image: test:latest
-> > 
+> >
 > > Inspected Size: 882 MB
-> > 
+> >
 > > (1/10) Creating a build sandbox...
 > > (2/10) Exporting filesystem...
 > > (3/10) Creating labels...
@@ -419,7 +419,7 @@ Singularity offers multiple ways to interact with a container:
 > 2. Login to your HPC
 > 3. Use `module load` to load singularity/apptainer
 > 4. Try the singularity run/exec/shell commands on your container
-> 
+>
 > > ## Example
 > > (For Pawsey)
 > > ~~~
@@ -431,14 +431,14 @@ Singularity offers multiple ways to interact with a container:
 > > {: .language-bash}
 > > ~~~
 > > usage: area_of_ngon.py [-h] [--out OUT] n
-> > 
+> >
 > > positional arguments:
 > >   n           Number of angles in our n-gon
-> > 
+> >
 > > optional arguments:
 > >   -h, --help  show this help message and exit
 > >   --out OUT   output file
-> > 
+> >
 > > ~~~
 > > {: .output}
 > > ~~~
