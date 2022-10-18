@@ -203,8 +203,7 @@ A few things to note:
 - Whatever files you put into the container during the build process will remain there during deployment.
 
 Docker containers are built according to instructions in a `Dockerfile`.
-An example is shown below:
-
+Below is an example docker file which is used to build a container for a project called [Robbie](https://github.com/PaulHancock/Robbie):
 ~~~
 # Start with a container that already has Python v3.9 installed
 FROM python:3.9
