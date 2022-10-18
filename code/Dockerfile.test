@@ -1,0 +1,13 @@
+# use a pre-made container as base
+FROM python:3.8.5
+
+# download the file into /user/bin and change permissions
+RUN cd /usr/bin &&\
+    wget https://raw.githubusercontent.com/ADACS-Australia/KLuken_HPC_training_2022B/gh-pages/code/examples/area_of_ngon.py &&\
+    chmod ugo+x area_of_ngon.py
+
+# set the default work directory
+WORKDIR /app
+
+# set the cmd (default program to run)
+CMD ["area_of_ngon.py", "--help"]

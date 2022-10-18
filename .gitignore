@@ -19,3 +19,4 @@ Gemfile.lock
 .ruby-version
 code/work/
 code/.nextflow*
+test.sif
