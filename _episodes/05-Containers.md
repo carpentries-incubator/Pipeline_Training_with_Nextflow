@@ -453,6 +453,7 @@ Singularity offers multiple ways to interact with a container:
 > > singularity shell test.sif
 > > ~~~
 > > {: .language-bash}
+> > Will give me an interactive terminal that looks like this:
 > > ~~~
 > > Singularity>
 > > ~~~
