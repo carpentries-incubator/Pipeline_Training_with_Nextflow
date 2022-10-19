@@ -16,7 +16,7 @@ The key features of a workflow are:
 - activity
 - outputs or results
 
-As humans that cook you are probably familiar with the following sort of workflow (a.k.a [recipe](https://vivashop.org.uk/products/winter-wonderland-recipe-guide)):
+As humans that cook you are probably familiar with the following sort of workflow (e.g, this [recipe](https://vivashop.org.uk/products/winter-wonderland-recipe-guide)):
 ![RecipeWorkflow]({{page.root}}{% link fig/Recipe.png %})
 
 And as an astronomer you can appreciate the following [flow-chart](https://ui.adsabs.harvard.edu/abs/2019PASA...36...46H/abstract), or decision tree, which takes input from an alert service, performs some checks and calculations to determine if action is needed, and results in either action or inaction:
@@ -100,14 +100,22 @@ We can plan our execution by traverse our workflow in two directions:
 
 By traversing the our workflow in reverse our work plan can avoid processing data that is not required for the desired output.
 This is how [Make](https://www.gnu.org/software/make/) behaves and it can solve a lot of time when you modify and restart a workflow which has previously been run.
- 
-## An automated workflow
-If a user manually executes each job, this is still a pipeline, but we should aim to automate as many of our pipelines as possible to save time.
-As pipelines grow, they often become complicated. It can be challenging to do the following:
-- Keep the pipeline clear, readable and maintainable
-- Track errors and rerun failed jobs
-- Benchmark jobs to find bottlenecks
-- Handle dependencies such as containers
-- Stop a pipeline, then resume where it left off
 
-To help with the above, it is best your use a pipeline language, such as Nextflow, to develop your pipelines.
+## How to implement workflows
+Despite the up-front designs that we may come up with, a workflow is going to naturally evolve and change as we encounter different problems and adjust our desired outputs.
+It is very common for people to start a research project by exploring or "playing" with data until interesting features present themselves, which help to develop hypotheses, and so on through to publication.
+Trying to back track through your notes when writing up a paper can be hard, and reproducing your own work can also be difficult if you haven't meticulously recorded how each bit of work was done.
+To get around this, we recommend that you take on a workflow mindset and record (in as much detail as possible) what was done and what decisions were made at each point in your work flow.
+This record of work may take the form of scripts that transform data, but it could just as reasonably be a recipe for a human to follow.
+At some point these human centered recipes will become the the slow points for your workflow and you are going to naturally look for ways to automate them.
+Whilst it is not essential for workflows to be fully-automated, it can certainly save time, and build confidence in results.
+
+As a workflow grows, it often becomes complicated. It can be challenging to do the following:
+- Keep the workflow clear, readable and maintainable
+- Track errors and respond to failed tasks
+- Benchmark tasks to find bottlenecks
+- Handle data or software dependencies
+- Run the workflow on different systems
+- Halt a workflow, update it, and then resume where it left off without having to redo already complete work
+
+To help with the above, it is best your use workflow [orchestration](https://en.wikipedia.org/wiki/Orchestration_(computing)) software, such as [NextFlow](https://nextflow.io/), to develop your computer based workflows.
