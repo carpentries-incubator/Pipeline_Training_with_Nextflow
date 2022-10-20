@@ -7,6 +7,14 @@ questions:
 keypoints:
 -
 ---
+
+## Separting your worflow from your config
+While we have touched on this in the [Nextflow Orchestration]({{ page.root }}{% link _episodes/04-Nextflow_Orchestration.md %}) episode,
+it is important to remember to keep anything that is computer specific in the `nextflow.config`.
+This will ensure that your pipeline can be run on any computer (laptop, supercomputers or cloudcomputing) without having to edit the workflow script.
+It is much easier for a user to edit the `nextflow.config` file to run the pipeline how they see fit.
+It should also be a long term goal to make a single config/profile for each computer that can be used by many pipelines.
+
 ## Making a --help
 Unlike Python, Nextflow doesn't have a module designed to help you create a `--help` so we have to do this manually.
 You should write a help for all of your Nextflow scripts to make them easier to use.
@@ -45,9 +53,127 @@ You may have noticed that the defaults are declared with `$` (`[default: ${param
 This is a good habit to get into as your defaults may change based on the configuration you are using so the help can be used to help remind yourself of your current defaults.
 The example help aslo includes the `-w` which is a Nextflow param, not a user declared param. Explaining some Nextflow parmas these can be useful for users that aren't familiar with some of Nextflows arguments.
 
-## Explaining your operators
+## Making your workflow easy to read and understand
 
-TODO
+### Use whitespace to improve readability.
+Nextflow is not sensitive to whitespace which allows you to use indentation,
+vertical spacing, new-lines, and increased spacing to improve code readability.
+
+~~~
+#! /usr/bin/env nextflow
+
+// Tip: Separate blocks of code into groups with common purpose
+//      e.g., parameter blocks, include statements, workflow blocks, process blocks
+// Tip: Align assignment operators vertically in a block
+params.label      = ''
+params.input_list = ''
+params.my_db      = '/path/to/database'
+
+workflow {
+
+    // Tip: Indent process calls
+    // Tip: Use spaces around process/function parameters
+    foo ( Channel.fromPath( params.input_list, checkIfExists: true ) )
+    bar ( foo.out )
+    // Tip: Use vertical spacing and indentation for many parameters.
+    baz (
+        Channel.fromPath( params.input_list, checkIfExists: true ),
+        foo.out,
+        bar.out,
+        path( params.my_db, checkIfExists: true )
+    )
+
+}
+~~~
+{: .language-groovy}
+
+### Use comments
+
+Comments are an important tool to improve readability and maintenance.
+Use them to:
+- Annotate data structures expected in a channel.
+- Describe higher level functionality.
+- Describe presence/absence of (un)expected code.
+- Mandatory and optional process inputs.
+
+~~~
+workflow comment_example {
+
+    take:
+    reads        // queue channel; [ sample_id, [ file(read1), file(read2) ] ]
+    reference    // file( "path/to/reference" )
+
+    main:
+    // Quality Check input reads
+    read_qc ( reads )
+
+    // Align reads to reference
+    if( params.run_type == 'common' ){
+        common (
+            read_qc.out.reads,
+            reference
+        )
+        reads_ch = comon.out.bam
+    } else if ( params.run_type == 'other' ) {
+        other (
+            read_qc.out.reads,
+            reference
+        )
+        reads_ch = other.out.bam
+    }
+    reads_ch.view()
+
+    emit:
+    bam = reads_ch   // queue channel: [ sample_id, file(bam_file) ]
+
+}
+
+process example {
+
+    input:
+    // Mandatory
+    tuple val(sample), path(reads)  // [ 'sample_id', [ read1, read2 ] ]: Reads in which to count kmers
+    // Optional
+    path kmer_table                 // 'path/to/kmer_table': Table of k-mers to count
+
+    ...
+}
+~~~
+{: .language-groovy}
+
+### Name output channels
+
+Output channels from processes and workflows can be named
+using the `emit:` keyword, which helps readability.
+
+~~~
+process make_bam {
+
+    ...
+
+    output:
+    tuple val(sample), path("*.bam"), emit: bam
+    tuple val(sample), path("*.log"), emit: summary
+    path "versions.yml"             , emit: versions
+
+    ...
+}
+
+workflow bam {
+
+    ...
+
+    emit:
+    output = make_bam.out.bam
+
+}
+~~~
+{: .language-groovy}
+## Further documentation
+// TODO Paul
+
+## Version metadata
+// TODO Paul
 
 ## Making modular workflows
 As you create several large pipelines, parts of your pipelines may be used in several places.
@@ -153,3 +279,12 @@ process retryIfFail {
 In the above example we have used a closure (curly brackets) to calculate how much memory to give to each attempt.
 So the process will ask for 10 GB, then 20 GB and finally 30 GB and if the job still fails with 30 GB then it stops the pipeline and outputs the error.
 
+
+## nf-core
+You can think of [nf-core](https://nf-co.re/) as place to store Nextflow piplines and modules the same way that Conda and PyPi store python modules.
+While it is out of the scope of this workshop to go into nf-core in detail, it is useful to know about nf-core.
+An end goal for many of your pipelines should be that they are easy to use, install and collaborate on.
+Nf-core is an excellent place for your pipelines and modules (individual processes) to end up as they enforce best practices
+which will help future astronomers spend less time creating pipelines and more time doing science.
+
+![nf_core](../fig/nf_core.png){: .width="400"}
