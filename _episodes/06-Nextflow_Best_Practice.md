@@ -37,9 +37,11 @@ The help should be put after your params are defined (most of this should be in 
 Here is a short example of `--help`:
 
 ~~~
+// in nextflow.config
 params.input_file = example.data
 params.use_thing = false
 
+// in your_script.nf
 if ( params.help ) {
     help = """your_script.nf: A description of your script and maybe some examples of how
              |                to run the script
@@ -95,13 +97,6 @@ However, inline comments can still be used to explain the intent and logic of yo
 If you have separated your workflow (`.nf`) from your configuration (`.config`) then the comments within these files naturally serve two audiences.
 Comments in the `.config` file can be verbose and explain the intent of the workflow as well as how all the different parameters should be set and will be used.
 Comments in the `.nf` file can be more technical and explain the logic behind the implementation.
-
-### Explaining your operators
-NextFlow channels are the glue that holds everything together.
-Any time that you need to modify the output of one process before sending to another process, you'll perform a channel operation.
-The chanel operators don't always perform as you might predict based on their names (e.g. [cross](https://www.nextflow.io/docs/latest/operator.html#cross) requires a key).
-
-So explain what your operators are doing because they are hard for humans to parse.
 
 ## Metadata for your workflow
 NextFlow has many different [configuration scopes](https://www.nextflow.io/docs/latest/config.html#config-scopes) within which you can define variables.
