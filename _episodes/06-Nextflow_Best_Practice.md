@@ -456,5 +456,3 @@ While it is out of the scope of this workshop to go into nf-core in detail, it i
 An end goal for many of your pipelines should be that they are easy to use, install and collaborate on.
 Nf-core is an excellent place for your pipelines and modules (individual processes) to end up as they enforce best practices
 which will help future astronomers spend less time creating pipelines and more time doing science.
-
-![nf_core](../fig/nf_core.png){: .width="400"}
