@@ -344,11 +344,6 @@ workflow bam {
 }
 ~~~
 {: .language-groovy}
-## Further documentation
-// TODO Paul
-
-## Version metadata
-// TODO Paul
 
 ## Making modular workflows
 As you create several large pipelines, parts of your pipelines may be used in several places.
