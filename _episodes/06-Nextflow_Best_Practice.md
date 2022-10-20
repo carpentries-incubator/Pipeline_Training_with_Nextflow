@@ -283,7 +283,7 @@ workflow comment_example {
             read_qc.out.reads,
             reference
         )
-        reads_ch = comon.out.bam
+        reads_ch = common.out.bam
     } else if ( params.run_type == 'other' ) {
         other (
             read_qc.out.reads,
@@ -349,7 +349,7 @@ A workflow is a collection of processes that can help make your pipelines very m
 You are probably familiar with the unnamed workflow, which can be thought of as the main workflow for that script.
 You can create additional workflows in the format:
 
-```
+~~~
 workflow workflow_name {
     take:
         some_channel
@@ -361,7 +361,7 @@ workflow workflow_name {
         foo.out
         bar.out
 }
-```
+~~~
 {: .language-javascript}
 where `take` is the input channels, `main` are the workflow processes and `emit` is the output channels.
 
@@ -371,7 +371,7 @@ You can use these workflows in several scripts that only process the raw data, s
 
 Here is an example where we have a `process_module.nf` which contains a workflow called `process`, and we want to combine it with another workflow:
 
-```
+~~~
 // import the workflow from the process_module.nf file
 include { process } from './process_module'
 
@@ -390,7 +390,7 @@ workflow {
         process(data)
         search(process.out)
 }
-```
+~~~
 {: .language-javascript}
 
 You may have noticed that the module include command (`include { process } from './process_module'`) is a relative directory call.
@@ -398,38 +398,38 @@ The easiest way to handle this, is keep all of your files within the same direct
 
 ## Error strategy
 By default, if a single job fails then Nextflow will stop your pipeline and output the error so you can investigate it.
-This is not always the behaviour we require so Nextflow has some useful options of how to handle errors.
+This is not always the behavior we require so Nextflow has some useful options of how to handle errors.
 These options are the process directives [`errorStrategy`](https://www.nextflow.io/docs/latest/process.html#errorstrategy) and [`maxRetries`](https://www.nextflow.io/docs/latest/process.html#maxretries).
 
 A simple way to use `errorStratgey` is to instruct it to ignore errors for the process like so:
-```
+~~~
 process ignoreAnyError {
   errorStrategy 'ignore'
 
   script:
   <your command string here>
 }
-```
+~~~
 {: .language-javascript}
 
 This will record any failures but not stops the pipeline.
 
 You can retry processes using 'retry':
 
-```
+~~~
 process retryIfFail {
   errorStrategy 'retry'
 
   script:
   <your command string here>
 }
-```
+~~~
 {: .language-javascript}
 
 Which will retry the process once by default.
 Some say insanity is doing the same thing and expecting a different result.
 We can instead increase the number of retries and progressively give the process more resources (RAM).
-```
+~~~
 process retryIfFail {
   errorStrategy 'retry'
   maxRetries 2
@@ -438,7 +438,7 @@ process retryIfFail {
   script:
   <your command string here>
 }
-```
+~~~
 {: .language-javascript}
 
 In the above example we have used a closure (curly brackets) to calculate how much memory to give to each attempt.
@@ -446,7 +446,7 @@ So the process will ask for 10 GB, then 20 GB and finally 30 GB and if the job s
 
 
 ## nf-core
-You can think of [nf-core](https://nf-co.re/) as place to store Nextflow piplines and modules the same way that Conda and PyPi store python modules.
+You can think of [nf-core](https://nf-co.re/) as place to store Nextflow pipelines and modules the same way that Conda and PyPi store python modules.
 While it is out of the scope of this workshop to go into nf-core in detail, it is useful to know about nf-core.
 An end goal for many of your pipelines should be that they are easy to use, install and collaborate on.
 Nf-core is an excellent place for your pipelines and modules (individual processes) to end up as they enforce best practices
