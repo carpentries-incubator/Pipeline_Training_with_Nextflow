@@ -16,7 +16,7 @@ Its fluent DSL simplifies the implementation and the deployment of complex paral
 
 
 # Documentation
-The documentation for Nextflow can be found [here](https://www.nextflow.io/docs/latest/index.html) and is an excellent resource. I have included links to the relevant sections of the documentation in the headers of this tutorial's sections. There is also a [basic patterns](https://nextflow-io.github.io/patterns/index.html#_basic_patterns) which has examples or basic pipeline problems which can be very useful for beginners. You can also ask for help on the [Nextflow slack channel](https://www.nextflow.io/slack-invite.html).
+The documentation for Nextflow can be found [here](https://www.nextflow.io/docs/latest/index.html) and is an excellent resource. I have included links to the relevant sections of the documentation in the headers of this tutorial's sections. There is also a [basic patterns](https://nextflow-io.github.io/patterns/index.html#_basic_patterns) which has examples or basic pipeline problems which can be very useful for beginners. There is also some [excellent training](https://training.seqera.io/) which also includes similar and more examples than what we will cover in this training. You can also ask for help on the [Nextflow slack channel](https://www.nextflow.io/slack-invite.html).
 
 
 # Testing Nextflow commands
