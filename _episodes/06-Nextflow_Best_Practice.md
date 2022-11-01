@@ -1,11 +1,19 @@
 ---
 title: "Nextflow Best Practices"
-teaching: 10
-exercises: 5
+teaching: 80
+exercises: 40
 questions:
--
+- How can I make my pipeline run on any computer?
+- How can I make my pipeline easy to understand?
+- What is the best way to handle errors?
+objectives:
+- Make your pipelines easy to understand and maintain
 keypoints:
--
+- All computer dependant settings should be put in the nextflow.config
+- Creating a --help and documentation makes your pipelines easier to use
+- Outputing metadata makes it clearer how you created your workflow results
+- Make your workflows modular to prevent repeating yourself
+- You can repeat errored jobs with more resources
 ---
 
 ## Separating the workflow logic from the configuration
@@ -184,14 +192,14 @@ Which would produce output like this:
 ~~~
 Example v1.0.0
 ==========================
-input from   : images.txt                                                                                                           
-output to    : results/                                                                                                             
---                               
-run as       : nextflow /pawsey/mwa/software/python3/robbie/master/bin/robbie.nf                                                    
+input from   : images.txt
+output to    : results/
+--
+run as       : nextflow /pawsey/mwa/software/python3/robbie/master/bin/robbie.nf
 started at   : 2022-10-15T14:22:07.073+08:00
-config files : [/pawsey/mwa/software/python3/robbie/master/bin/nextflow.config, /astro/mwasci/phancock/D0009/nextflow.conf          
-ig]                                                                                                                                 
-container    : singularity:file:////pawsey/mwa/singularity/robbie/robbie-next_2.3.0.sif                 
+config files : [/pawsey/mwa/software/python3/robbie/master/bin/nextflow.config, /astro/mwasci/phancock/D0009/nextflow.conf
+ig]
+container    : singularity:file:////pawsey/mwa/singularity/robbie/robbie-next_2.3.0.sif
 ~~~
 {: .output}
 

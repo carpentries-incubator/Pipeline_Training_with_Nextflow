@@ -1,11 +1,14 @@
 ---
 title: "Introduction to Nextflow"
-teaching: 10
-exercises: 5
+teaching: 80
+exercises: 40
 questions:
--
+- What is Nextflow?
+- What are the components of Nextflow?
+- How can I use Nextflow to implement my workflow?
 keypoints:
--
+- A Nextflow workflow contains channels and processes
+- Operators are used to manipulate channels
 ---
 
 # What is Nextflow?

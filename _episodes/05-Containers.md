@@ -1,14 +1,20 @@
 ---
 title: "Containers"
-teaching: 10
-exercises: 5
+teaching: 80
+exercises: 40
 questions:
 - "What are containers?"
 - "What is the difference between Docker and Singularity?"
 - "How can I build containers?"
 - "How can I share containers?"
+objectives:
+- Download a container
+- Build a simple container
+- Convert a docker container to a singularity container
 keypoints:
--
+- Containers improve portability and reproducibility
+- You can download and share containers with dockerhub
+- Building docker containers uses similar commands to installing software on your computer
 ---
 <!--
 Understand containers:
