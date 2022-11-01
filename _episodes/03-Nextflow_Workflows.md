@@ -1,11 +1,20 @@
 ---
 title: "Nextflow Workflows"
-teaching: 10
-exercises: 5
+teaching: 80
+exercises: 40
 questions:
--
+- How do I run a Nextflow pipeline?
+- What is a teminal multiplexer?
+- How do I debug a Nextflow job?
+- How do I resume a pipeline?
+objectives:
+- Understand the best way to run Nextflow pipelines
+- Know how to debug a Nextflow Error
 keypoints:
--
+- You can install Nextflow scripts by putting them on the $PATH
+- Terminal multiplexers (screen and tmux) making running pipelines easier
+- Trace reports and error outputs help you find failed jobs
+- You can resume pipelines with -resume
 ---
 # How to run a Nextflow pipeline
 
