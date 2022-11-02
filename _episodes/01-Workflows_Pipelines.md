@@ -1,9 +1,13 @@
 ---
 title: "Workflows and Pipelines"
-teaching: 10
-exercises: 5
+teaching: 20
+exercises: 10
 questions:
--
+- What is a workflow
+- What does it mean to have a data-driven workflow
+- How do I implement a workflow
+objectives:
+- Understand the components of a workflow
 keypoints:
 -
 ---
@@ -53,9 +57,9 @@ This in turn means that we need to have a better idea of how we map our inputs t
 > Think about some research work that you have done, are doing, or plan to do and:
 > - Describe the desired outcome/output/result
 > - Describe the information/data/resources that you think you might need
-> 
+>
 > Draw a three stage diagram which has a single box as your "task".
-> 
+>
 > Now think about how you can break this box into smaller linked pieces such that you have a more detailed map of how to get from inputs to outputs.
 > > ## Example
 > > Initial plan - make a map of my path home with weather info so I know if I should take a coat/umbrella.
@@ -67,21 +71,21 @@ This in turn means that we need to have a better idea of how we map our inputs t
 > {: .solution}
 > Take some time to make make a workflow for yourself, and then share with people near you.
 > Use a fancy drawing program if you like but `PaperPencilV1.0` will also work just fine.
-> 
+>
 {: .challenge}
 
 > ## Follow the arrows
 > In the figures that we have been viewing, there are arrows that link inputs to tasks, tasks to other tasks, and tasks to outputs.
 > What do these arrows represent to you?
-> 
+>
 > Are they:
 > 1. an indication of precedent / order / dependency
 > 2. the flow of information / data / files
 >
 > If you said (1) then could can you determine what information needs to be passed between the different stages and in what format?
-> 
+>
 > Do the diagrams produced by people answering (1) differ from those produced by people answering (2)?
-> 
+>
 {: .discussion}
 
 If you answered (2) in the above discussion then you are thinking about a **data-driven workflow**.
@@ -94,8 +98,8 @@ We can plan our execution by traverse our workflow in two directions:
    2. Transforming them into outputs which are then fed to the next task,
    3. Repeating until you arrive at the desired output.
 2. Backward:
-   1.  Starting at the final product and asking what inputs are required, 
-   2.  Stepping back to see what is needed to make these inputs, 
+   1.  Starting at the final product and asking what inputs are required,
+   2.  Stepping back to see what is needed to make these inputs,
    3.  Repeating until we have inputs that already exist and then executing the workflow from this point forward.
 
 By traversing the our workflow in reverse our work plan can avoid processing data that is not required for the desired output.

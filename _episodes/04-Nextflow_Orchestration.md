@@ -1,11 +1,16 @@
 ---
 title: "Nextflow Orchestration"
-teaching: 10
-exercises: 5
+teaching: 40
+exercises: 20
 questions:
--
+- How do I run pipelines on supercomputing clusters?
+- How do I use containers in my pipeline?
+objectives:
+- Set up a config that will tell Nextflow how to run on a supercomputer
 keypoints:
--
+- All computer dependant settings should be put in the nextflow.config
+- You can use labels to define process dependancies and resource requirements
+- You can easily use containers in nextflow pipelines
 ---
 # Working locally and on supercomputing clusters
 The pipelines we have created so far are only ready to be run on a local desktop or laptop.
