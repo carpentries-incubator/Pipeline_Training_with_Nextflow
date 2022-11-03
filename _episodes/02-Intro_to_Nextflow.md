@@ -297,7 +297,74 @@ HELLO WORLD
 This is the output of our pipeline.
 Normally we don't output anything for our pipeline to the command line (outside of debugging) but we saw it because we used `.view()`.
 
-
+> ## Simple script challenge
+>
+> For this challenge we will use the simple script from before:
+>
+> ~~~
+> params.message = "hello world"
+>
+> process make_file {
+>     output:
+>         file "message.txt"
+>
+>     """
+>     echo "${params.message}" > message.txt
+>     """
+> }
+>
+> process echo_file {
+>     input:
+>         file message_file
+>     output:
+>         stdout
+>
+>     """
+>     cat ${message_file} | tr '[a-z]' '[A-Z]'
+>     """
+> }
+>
+> workflow {
+>    make_file()
+>    echo_file(make_file.out).view()
+> }
+> ~~~
+> {: .language-javascript}
+>
+> Your challenge is to change the `echo_file` process so that it changes the message to lowercase (instead of uppercase).
+> Then to confirm that it works, change the input message to "THIS SHOULD BE LOWERCASE" using the command line.
+> > ## Soultion
+> > This is the change to the `echo_file` process
+> > ~~~
+> > process echo_file {
+> >     input:
+> >         file message_file
+> >     output:
+> >         stdout
+> >
+> >     """
+> >     cat ${message_file} | tr '[A-Z]' '[a-z]'
+> >     """
+> > }
+> > ~~~
+> > {: .language-javascript}
+> > which when run like so:
+> > ~~~
+> > nextflow run simple_script_challange.nf --message "THIS SHOULD BE LOWERCASE"
+> > ~~~
+> > {:. language-bash}
+> > will output
+> > ~~~
+> > N E X T F L O W  ~  version 22.04.5
+> > Launching `simple_script_challange.nf` [wise_davinci] DSL2 - revision: e1bf2b9b55
+> > executor >  local (2)
+> > [40/bbe0be] process > make_file [100%] 1 of 1 ✔
+> > [d1/044ad5] process > echo_file [100%] 1 of 1 ✔
+> > this should be lowercase
+> > ~~~
+> > {: .output}
+> {: .solution}
+{: .challenge}
 
 
 # Why do we want to manipulate Channels?
