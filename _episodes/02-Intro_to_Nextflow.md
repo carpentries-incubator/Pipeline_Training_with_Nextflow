@@ -297,7 +297,74 @@ HELLO WORLD
 This is the output of our pipeline.
 Normally we don't output anything for our pipeline to the command line (outside of debugging) but we saw it because we used `.view()`.
 
-
+> ## Simple script challenge
+>
+> For this challenge we will use the simple script from before:
+>
+> ~~~
+> params.message = "hello world"
+>
+> process make_file {
+>     output:
+>         file "message.txt"
+>
+>     """
+>     echo "${params.message}" > message.txt
+>     """
+> }
+>
+> process echo_file {
+>     input:
+>         file message_file
+>     output:
+>         stdout
+>
+>     """
+>     cat ${message_file} | tr '[a-z]' '[A-Z]'
+>     """
+> }
+>
+> workflow {
+>    make_file()
+>    echo_file(make_file.out).view()
+> }
+> ~~~
+> {: .language-javascript}
+>
+> Your challenge is to change the `echo_file` process so that it changes the message to lowercase (instead of uppercase).
+> Then to confirm that it works, change the input message to "THIS SHOULD BE LOWERCASE" using the command line.
+> > ## Soultion
+> > This is the change to the `echo_file` process
+> > ~~~
+> > process echo_file {
+> >     input:
+> >         file message_file
+> >     output:
+> >         stdout
+> >
+> >     """
+> >     cat ${message_file} | tr '[A-Z]' '[a-z]'
+> >     """
+> > }
+> > ~~~
+> > {: .language-javascript}
+> > which when run like so:
+> > ~~~
+> > nextflow run simple_script_challange.nf --message "THIS SHOULD BE LOWERCASE"
+> > ~~~
+> > {:. language-bash}
+> > will output
+> > ~~~
+> > N E X T F L O W  ~  version 22.04.5
+> > Launching `simple_script_challange.nf` [wise_davinci] DSL2 - revision: e1bf2b9b55
+> > executor >  local (2)
+> > [40/bbe0be] process > make_file [100%] 1 of 1 ✔
+> > [d1/044ad5] process > echo_file [100%] 1 of 1 ✔
+> > this should be lowercase
+> > ~~~
+> > {: .output}
+> {: .solution}
+{: .challenge}
 
 
 # Why do we want to manipulate Channels?
@@ -568,60 +635,86 @@ c
 ```
 {: .output}
 
-Here is an example of combining the output of two processes and grouping them by their filename.
-
-```
-process make_files_one {
-   output:
-   file "file*.txt"
-
-   """for i in \$(seq 3); do touch file_\${i}_s_one.txt; done"""
-}
-
-process make_files_two {
-   output:
-   file "file*.txt"
-
-   """for i in \$(seq 3); do touch file_\${i}_s_two.txt; done"""
-}
-
-
-process grouped_files {
-   echo true
-
-   input:
-   tuple file(first_file), file(second_file)
-   """echo 'I have ${first_file} and ${second_file}'"""
-}
-
-workflow {
-   make_files_one()
-   make_files_two()
-   grouped_files(
-       // Label the files with their prefix
-       make_files_one.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }.\
-       // Concat them with the other process
-       concat(make_files_two.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }).\
-       // Group the files by this prefix
-       groupTuple().map { it -> [ it[1][0], it[1][1] ] })
-}
-```
-{: .language-javascript}
-
-```
-N E X T F L O W  ~  version 21.04.3
-Launching `channel_tuples.nf` [stoic_liskov] - revision: 79877921ac
-executor >  local (5)
-[b2/7e78a1] process > make_files_one    [100%] 1 of 1 ✔
-[bc/285fad] process > make_files_two    [100%] 1 of 1 ✔
-[bc/da6cc3] process > grouped_files (1) [100%] 3 of 3 ✔
-I have file_2_s_one.txt and file_2_s_two.txt
-
-I have file_3_s_one.txt and file_3_s_two.txt
-
-I have file_1_s_one.txt and file_1_s_two.txt
-```
-{: .output}
+> ## Concat challenge
+>
+> Here is an example of an incomplete pipeline that combines the output of two processes and grouping them by their filename.
+>
+> ~~~
+> process make_files_one {
+>    output:
+>    file "file*.txt"
+>
+>    """for i in \$(seq 3); do touch file_\${i}_s_one.txt; done"""
+> }
+>
+> process make_files_two {
+>    output:
+>    file "file*.txt"
+>
+>    """for i in \$(seq 3); do touch file_\${i}_s_two.txt; done"""
+> }
+>
+>
+> process grouped_files {
+>    echo true
+>
+>    input:
+>    tuple file(first_file), file(second_file)
+>    """echo 'I have ${first_file} and ${second_file}'"""
+> }
+>
+> workflow {
+>    make_files_one()
+>    make_files_two()
+>    // Label the files with their prefix
+>    files_one = make_files_one.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }
+>    files_two = make_files_two.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }
+>    grouped_files(
+>        // Concat them with the other process
+>        // YOUR CODE HERE
+>        // Group the files by this prefix then remove the prefix
+>        // YOUR CODE HERE
+>     )
+> }
+> ~~~
+> {: .language-javascript}
+>
+> Your challenge is to complete the pipeline by combining the `files_one` and `files_two` channels using
+> `concat` and group them (using `groupTuple` and `map`) so that the output of the `grouped_files` looks similar to this:
+>
+> ~~~
+> N E X T F L O W  ~  version 21.04.3
+> Launching `channel_tuples.nf` [stoic_liskov] - revision: 79877921ac
+> executor >  local (5)
+> [b2/7e78a1] process > make_files_one    [100%] 1 of 1 ✔
+> [bc/285fad] process > make_files_two    [100%] 1 of 1 ✔
+> [bc/da6cc3] process > grouped_files (1) [100%] 3 of 3 ✔
+> I have file_2_s_one.txt and file_2_s_two.txt
+>
+> I have file_3_s_one.txt and file_3_s_two.txt
+>
+> I have file_1_s_one.txt and file_1_s_two.txt
+> ~~~
+> {: .output}
+> > ## Soultion
+> > ~~~
+> > workflow {
+> >    make_files_one()
+> >    make_files_two()
+> >    // Label the files with their prefix
+> >    files_one = make_files_one.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }
+> >    files_two = make_files_two.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }
+> >    grouped_files(
+> >        // Concat them with the other process
+> >        files_one.concat(files_two).
+> >        // Group the files by this prefix then remove the prefix
+> >        groupTuple().map { it -> [ it[1][0], it[1][1] ] }
+> >     )
+> > }
+> > ~~~
+> > {: .language-javascript}
+> {: .solution}
+{: .challenge}
 
 
 ## [splitCsv](https://www.nextflow.io/docs/latest/operator.html#splitcsv)
@@ -689,5 +782,37 @@ source.cross(target).view()
 {: .output}
 
 This can easily be maped to a process that will launch a job for each observation data file and candidate information.
+
+> ## Cross Challange
+>
+> Similar to the previous example, you have of your observation data files and the observation candidates:
+>
+> ~~~
+> data = Channel.from( ['obs1.dat', 'obs2.dat'] )
+> candiates = Channel.from( ['obs1_cand1.dat', 'obs1_cand2.dat', 'obs1_cand3.dat', 'obs2_cand1.dat', 'obs2_cand2.dat'] )
+> ~~~
+> {: .language-javascript}
+>
+> You want to `map` the data so that the observation name can be used as a key, `cross` them so each
+> candidate has a observation data file, the reformat them so they're in the format:
+> ~~~
+> [obsname, obs_data, obs_cand]
+> eg:
+> [obs1, obs1.dat, obs1_cand1.dat]
+> ~~~
+> {: .language-javascript}
+> > ## Soultion
+> > ~~~
+> > // Use map to get an observation key
+> > data = data.map { it -> [ it.split("_")[0], it ] }
+> > candiates = candiates.map { it -> [ it.split("_")[0], it ] }
+> > // Cross the data
+> > data.cross(candiates)
+> >     // Reformat to desired output
+> >     .map { it -> [ it[0][0], it[0][1], it[1][1] ] }.view()
+> > ~~~
+> > {: .language-javascript}
+> {: .solution}
+{: .challenge}
 
 
