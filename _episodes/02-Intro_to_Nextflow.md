@@ -568,60 +568,86 @@ c
 ```
 {: .output}
 
-Here is an example of combining the output of two processes and grouping them by their filename.
-
-```
-process make_files_one {
-   output:
-   file "file*.txt"
-
-   """for i in \$(seq 3); do touch file_\${i}_s_one.txt; done"""
-}
-
-process make_files_two {
-   output:
-   file "file*.txt"
-
-   """for i in \$(seq 3); do touch file_\${i}_s_two.txt; done"""
-}
-
-
-process grouped_files {
-   echo true
-
-   input:
-   tuple file(first_file), file(second_file)
-   """echo 'I have ${first_file} and ${second_file}'"""
-}
-
-workflow {
-   make_files_one()
-   make_files_two()
-   grouped_files(
-       // Label the files with their prefix
-       make_files_one.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }.\
-       // Concat them with the other process
-       concat(make_files_two.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }).\
-       // Group the files by this prefix
-       groupTuple().map { it -> [ it[1][0], it[1][1] ] })
-}
-```
-{: .language-javascript}
-
-```
-N E X T F L O W  ~  version 21.04.3
-Launching `channel_tuples.nf` [stoic_liskov] - revision: 79877921ac
-executor >  local (5)
-[b2/7e78a1] process > make_files_one    [100%] 1 of 1 ✔
-[bc/285fad] process > make_files_two    [100%] 1 of 1 ✔
-[bc/da6cc3] process > grouped_files (1) [100%] 3 of 3 ✔
-I have file_2_s_one.txt and file_2_s_two.txt
-
-I have file_3_s_one.txt and file_3_s_two.txt
-
-I have file_1_s_one.txt and file_1_s_two.txt
-```
-{: .output}
+> ## Concat challenge
+>
+> Here is an example of an incomplete pipeline that combines the output of two processes and grouping them by their filename.
+>
+> ~~~
+> process make_files_one {
+>    output:
+>    file "file*.txt"
+>
+>    """for i in \$(seq 3); do touch file_\${i}_s_one.txt; done"""
+> }
+>
+> process make_files_two {
+>    output:
+>    file "file*.txt"
+>
+>    """for i in \$(seq 3); do touch file_\${i}_s_two.txt; done"""
+> }
+>
+>
+> process grouped_files {
+>    echo true
+>
+>    input:
+>    tuple file(first_file), file(second_file)
+>    """echo 'I have ${first_file} and ${second_file}'"""
+> }
+>
+> workflow {
+>    make_files_one()
+>    make_files_two()
+>    // Label the files with their prefix
+>    files_one = make_files_one.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }
+>    files_two = make_files_two.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }
+>    grouped_files(
+>        // Concat them with the other process
+>        // YOUR CODE HERE
+>        // Group the files by this prefix then remove the prefix
+>        // YOUR CODE HERE
+>     )
+> }
+> ~~~
+> {: .language-javascript}
+>
+> Your challenge is to complete the pipeline by combining the `files_one` and `files_two` channels using
+> `concat` and group them (using `groupTuple` and `map`) so that the output of the `grouped_files` looks similar to this:
+>
+> ~~~
+> N E X T F L O W  ~  version 21.04.3
+> Launching `channel_tuples.nf` [stoic_liskov] - revision: 79877921ac
+> executor >  local (5)
+> [b2/7e78a1] process > make_files_one    [100%] 1 of 1 ✔
+> [bc/285fad] process > make_files_two    [100%] 1 of 1 ✔
+> [bc/da6cc3] process > grouped_files (1) [100%] 3 of 3 ✔
+> I have file_2_s_one.txt and file_2_s_two.txt
+>
+> I have file_3_s_one.txt and file_3_s_two.txt
+>
+> I have file_1_s_one.txt and file_1_s_two.txt
+> ~~~
+> {: .output}
+> > ## Soultion
+> > ~~~
+> > workflow {
+> >    make_files_one()
+> >    make_files_two()
+> >    // Label the files with their prefix
+> >    files_one = make_files_one.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }
+> >    files_two = make_files_two.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }
+> >    grouped_files(
+> >        // Concat them with the other process
+> >        files_one.concat(files_two).
+> >        // Group the files by this prefix then remove the prefix
+> >        groupTuple().map { it -> [ it[1][0], it[1][1] ] }
+> >     )
+> > }
+> > ~~~
+> > {: .language-javascript}
+> {: .solution}
+{: .challenge}
 
 
 ## [splitCsv](https://www.nextflow.io/docs/latest/operator.html#splitcsv)
