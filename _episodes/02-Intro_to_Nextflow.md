@@ -690,4 +690,36 @@ source.cross(target).view()
 
 This can easily be maped to a process that will launch a job for each observation data file and candidate information.
 
+> ## Cross Challange
+>
+> Similar to the previous example, you have of your observation data files and the observation candidates:
+>
+> ~~~
+> data = Channel.from( ['obs1.dat', 'obs2.dat'] )
+> candiates = Channel.from( ['obs1_cand1.dat', 'obs1_cand2.dat', 'obs1_cand3.dat', 'obs2_cand1.dat', 'obs2_cand2.dat'] )
+> ~~~
+> {: .language-javascript}
+>
+> You want to `map` the data so that the observation name can be used as a key, `cross` them so each
+> candidate has a observation data file, the reformat them so they're in the format:
+> ~~~
+> [obsname, obs_data, obs_cand]
+> eg:
+> [obs1, obs1.dat, obs1_cand1.dat]
+> ~~~
+> {: .language-javascript}
+> > ## Soultion
+> > ~~~
+> > // Use map to get an observation key
+> > data = data.map { it -> [ it.split("_")[0], it ] }
+> > candiates = candiates.map { it -> [ it.split("_")[0], it ] }
+> > // Cross the data
+> > data.cross(candiates)
+> >     // Reformat to desired output
+> >     .map { it -> [ it[0][0], it[0][1], it[1][1] ] }.view()
+> > ~~~
+> > {: .language-javascript}
+> {: .solution}
+{: .challenge}
+
 
