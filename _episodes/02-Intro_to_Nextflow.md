@@ -195,7 +195,7 @@ process pythonStuff {
 ```
 {: .language-groovy}
 
-## Variable
+## Variables
 Variables are easy to declare and similar to other languages.
 You should treat variables as constants as soon as the pipeline begins.
 If the variable is job-dependent, you should turn it into a channel.
@@ -238,7 +238,7 @@ process make_files {
 You can see we're labelling the output files with the observation ID for all jobs.
 
 
-## [Worflow](https://www.nextflow.io/docs/latest/dsl2.html#workflow)
+## [Workflow](https://www.nextflow.io/docs/latest/dsl2.html#workflow)
 A workflow is a combination of processes that will include the entire workflow or a sub part of it (will be explained in a later section).
 This is where you will connect processes by their channels and and manipulate the channels so your pipeline runs in the required way.
 
@@ -427,10 +427,11 @@ Normally we don't output anything for our pipeline to the command line (outside 
 {: .challenge}
 
 
-# Why do we want to manipulate Channels?
+# All about channels and why we manipulate them?
 
+The format of your channels is very important as it dictates how your pipeline will run.
+Each row of a channel will spawn its own job for each process, so the shape of the channel informs Nextflow how many jobs to launch and what input each job has.
 Manipulating channels is the most difficult parts of Nextlflow but it allows us create any type of pipeline.
-Each row of a channel will spawn its own job for each process, so the shape of the channel dictates how many jobs are launched and what inputs each job has.
 
 So we have a channel of three files like so:
 ```
@@ -438,9 +439,9 @@ Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).view()
 ```
 {: .language-groovy}
 ```
-/home/nick/code/Nextflow_Training_2022B/code/file_1.txt
-/home/nick/code/Nextflow_Training_2022B/code/file_2.txt
-/home/nick/code/Nextflow_Training_2022B/code/file_3.txt
+/some/dir/file_1.txt
+/some/dir/file_2.txt
+/some/dir/file_3.txt
 ```
 {: .output}
 
@@ -451,7 +452,7 @@ Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).collect().view()
 ```
 {: .language-groovy}
 ```
-[/home/nick/code/Nextflow_Training_2022B/code/file_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3.txt]
+[/some/dir/file_1.txt, /some/dir/file_2.txt, /some/dir/file_3.txt]
 ```
 {: .output}
 So now we have a single row of files. Just for fun, we can even use [`flatten`](https://www.nextflow.io/docs/latest/operator.html#flatten) to "flatten" them back to one file per row:
@@ -461,9 +462,9 @@ Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).collect().flatten()
 ```
 {: .language-groovy}
 ```
-/home/nick/code/Nextflow_Training_2022B/code/file_1.txt
-/home/nick/code/Nextflow_Training_2022B/code/file_2.txt
-/home/nick/code/Nextflow_Training_2022B/code/file_3.txt
+/some/dir/file_1.txt
+/some/dir/file_2.txt
+/some/dir/file_3.txt
 ```
 {: .output}
 
@@ -499,8 +500,12 @@ process all_files {
 
 workflow {
    make_files()
+   // flatten channel to make the dimensions 3 rows x 1 column
    each_file(make_files.out.flatten())
+   // collect channgel to make the dimensions 1 row x 3 columns
    all_files(make_files.out.collect())
+   // The above collect is redundant so you will get the same result from:
+   // all_files(make_files.out)
 }
 ```
 {: .language-groovy}
@@ -651,21 +656,21 @@ Channel
 ```
 {: .language-groovy}
 ```
-step 1: [file_1, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_1.txt]
-step 1: [file_3, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_3.txt]
-step 1: [file_2, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_2.txt]
-step 1: [file_2, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_3.txt]
-step 1: [file_3, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_1.txt]
-step 1: [file_1, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_3.txt]
-step 1: [file_2, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_1.txt]
-step 1: [file_1, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_2.txt]
-step 1: [file_3, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_2.txt]
-step 2: [file_1, [/home/nick/code/Nextflow_Training_2022B/code/file_1_s_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_2.txt]]
-step 2: [file_3, [/home/nick/code/Nextflow_Training_2022B/code/file_3_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_2.txt]]
-step 2: [file_2, [/home/nick/code/Nextflow_Training_2022B/code/file_2_s_2.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_1.txt]]
-step 3: [/home/nick/code/Nextflow_Training_2022B/code/file_1_s_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_2.txt]
-step 3: [/home/nick/code/Nextflow_Training_2022B/code/file_3_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_2.txt]
-step 3: [/home/nick/code/Nextflow_Training_2022B/code/file_2_s_2.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_1.txt]
+step 1: [file_1, /some/dir/file_1_s_1.txt]
+step 1: [file_3, /some/dir/file_3_s_3.txt]
+step 1: [file_2, /some/dir/file_2_s_2.txt]
+step 1: [file_2, /some/dir/file_2_s_3.txt]
+step 1: [file_3, /some/dir/file_3_s_1.txt]
+step 1: [file_1, /some/dir/file_1_s_3.txt]
+step 1: [file_2, /some/dir/file_2_s_1.txt]
+step 1: [file_1, /some/dir/file_1_s_2.txt]
+step 1: [file_3, /some/dir/file_3_s_2.txt]
+step 2: [file_1, [/some/dir/file_1_s_1.txt, /some/dir/file_1_s_3.txt, /some/dir/file_1_s_2.txt]]
+step 2: [file_3, [/some/dir/file_3_s_3.txt, /some/dir/file_3_s_1.txt, /some/dir/file_3_s_2.txt]]
+step 2: [file_2, [/some/dir/file_2_s_2.txt, /some/dir/file_2_s_3.txt, /some/dir/file_2_s_1.txt]]
+step 3: [/some/dir/file_1_s_1.txt, /some/dir/file_1_s_3.txt, /some/dir/file_1_s_2.txt]
+step 3: [/some/dir/file_3_s_3.txt, /some/dir/file_3_s_1.txt, /some/dir/file_3_s_2.txt]
+step 3: [/some/dir/file_2_s_2.txt, /some/dir/file_2_s_3.txt, /some/dir/file_2_s_1.txt]
 ```
 {: .output}
 
@@ -766,9 +771,9 @@ c
 > >    files_two = make_files_two.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }
 > >    grouped_files(
 > >        // Concat them with the other process
-> >        files_one.concat(files_two).
+> >        files_one.concat(files_two)
 > >        // Group the files by this prefix then remove the prefix
-> >        groupTuple().map { it -> [ it[1][0], it[1][1] ] }
+> >        .groupTuple().map { it -> [ it[1][0], it[1][1] ] }
 > >     )
 > > }
 > > ~~~

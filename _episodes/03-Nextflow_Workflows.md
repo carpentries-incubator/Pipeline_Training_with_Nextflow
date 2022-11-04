@@ -437,7 +437,7 @@ You can use `publishDir` to output files to a directory outside the Nextflow wor
 For example:
 
 ```
-process for {
+process final_data {
     publishDir '/home/data/'
 
     output:
@@ -450,4 +450,23 @@ process for {
 ```
 {: .language-groovy}
 
-This will output the science.data file to /home/data
+This will output the science.data file to /home/data/.
+
+By default, `publishDir` outputs the files as symlinks so you will lose the published data once you delete the work directory.
+Instead you can use `copy` as the `publishDir` `mode` like so:
+
+```
+process final_data {
+    publishDir '/home/data/', mode: 'copy'
+
+    output:
+    file 'science.data'
+
+    '''
+    echo "Some Science" > science.data
+    '''
+}
+```
+{: .language-groovy}
+
+It is normally best to use `copy` instead of `move` as the pipeline will have to rerun the process if the output data is moved out of the work directory.
