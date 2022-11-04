@@ -30,7 +30,7 @@ You can also put your Nextflow pipelines on your PATH and treat them as you woul
 #!/usr/bin/env nextflow
 
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 With that running your pipeline becomes as easy as
 es are launched from the command line like so:
@@ -155,7 +155,7 @@ By default, the work directory is `./work` but it can be altered by setting
 workDir = "/data/dir/for/work"
 
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 in the `nextflow.config` file or on the command line with `-w /data/dir/for/work`.
 
@@ -301,7 +301,7 @@ workflow {
    python_job()
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 When I run this pipeline, Nextflow will output a verbose error message:
 
@@ -448,6 +448,6 @@ process for {
     '''
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 This will output the science.data file to /home/data

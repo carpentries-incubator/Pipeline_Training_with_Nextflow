@@ -49,7 +49,7 @@ You can create channels of values using `of`:
 ch = Channel.of( 1, 3, 5, 7 )
 ch.view { "value: $it" }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 which will output:
 
@@ -67,7 +67,7 @@ You can create channels of files using `fromPath`:
 myFileChannel = Channel.fromPath( '/data/some/bigfile.txt' )
 myFileChannel.view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 which, as long as the file exists, will output:
 
@@ -81,7 +81,7 @@ You can also use wildcards to collect files:
 ```
 myFileChannel = Channel.fromPath( '/data/big/*.txt' ).view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 which could output someting like:
 
@@ -117,7 +117,7 @@ process < name > {
 
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 By default, the process will be executed as a bash script, but you can easily add the languages shebang to the first line of the script.
 For example, you could write a python process like so:
@@ -133,7 +133,7 @@ process pythonStuff {
     """
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 ## Variable
 Variables are easy to declare and similar to other languages.
@@ -151,7 +151,7 @@ params.input_dir = "/home/default/data/directory/"
 
 myFileChannel = Channel.fromPath( '${params.input_dir}/*csv' )
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 This will create a channel of all the CSV files in `/home/default/data/directory/` by default, but this can also be changed by using
 ```
@@ -173,7 +173,7 @@ process make_files {
    """for i in \$(seq 3); do touch ${observation_id}_\${i}_s_one.txt; done"""
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 You can see we're labelling the output files with the observation ID for all jobs.
 
@@ -188,7 +188,7 @@ workflow  {
     another_process( a_process.out.collect() )
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 Note that we get output from processes with `.out`, if there are mutiple outputs from a process you can treat it like a list so if you want the first output channel grab it with `.out[0]`.
 
@@ -229,7 +229,7 @@ workflow {
    echo_file(make_file.out).view()
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 This script has two simple processes.
 The first writes a variable to a file, then hands that file to the second process, which capitalises it and outputs it to the terminal.
@@ -329,7 +329,7 @@ Normally we don't output anything for our pipeline to the command line (outside 
 >    echo_file(make_file.out).view()
 > }
 > ~~~
-> {: .language-javascript}
+> {: .language-groovy}
 >
 > Your challenge is to change the `echo_file` process so that it changes the message to lowercase (instead of uppercase).
 > Then to confirm that it works, change the input message to "THIS SHOULD BE LOWERCASE" using the command line.
@@ -347,7 +347,7 @@ Normally we don't output anything for our pipeline to the command line (outside 
 > >     """
 > > }
 > > ~~~
-> > {: .language-javascript}
+> > {: .language-groovy}
 > > which when run like so:
 > > ~~~
 > > nextflow run simple_script_challange.nf --message "THIS SHOULD BE LOWERCASE"
@@ -376,7 +376,7 @@ So we have a channel of three files like so:
 ```
 Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 /home/nick/code/Nextflow_Training_2022B/code/file_1.txt
 /home/nick/code/Nextflow_Training_2022B/code/file_2.txt
@@ -389,7 +389,7 @@ If we instead wanted to create a single job that has access to all three files w
 ```
 Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).collect().view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 [/home/nick/code/Nextflow_Training_2022B/code/file_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3.txt]
 ```
@@ -399,7 +399,7 @@ So now we have a single row of files. Just for fun, we can even use [`flatten`](
 ```
 Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).collect().flatten().view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 /home/nick/code/Nextflow_Training_2022B/code/file_1.txt
 /home/nick/code/Nextflow_Training_2022B/code/file_2.txt
@@ -443,7 +443,7 @@ workflow {
    all_files(make_files.out.collect())
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 Which will output:
 ```
@@ -518,7 +518,7 @@ Channel
     .map { it * it }
     .view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 where `it` describes each item as `map` iterates over the channel. This will output:
 
 ```
@@ -538,7 +538,7 @@ Channel
     .map { it -> [ it[0], it[0] * it[0], it[1].split("_")[0], it[1].split("_")[1] ] }
     .view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 [1, 1, A, B]
 [2, 4, B, C]
@@ -556,7 +556,7 @@ Channel
     .groupTuple()
     .view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 [1, [A, B, C]]
 [2, [C, A]]
@@ -589,7 +589,7 @@ Channel
     // Remove the key so it can be easily input into a process
     .map{ it -> it[1] }.view{"step 3: $it"}
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 step 1: [file_1, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_1.txt]
 step 1: [file_3, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_3.txt]
@@ -622,7 +622,7 @@ c = Channel.from('p','q')
 
 c.concat( b, a ).view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 p
 q
@@ -677,7 +677,7 @@ c
 >     )
 > }
 > ~~~
-> {: .language-javascript}
+> {: .language-groovy}
 >
 > Your challenge is to complete the pipeline by combining the `files_one` and `files_two` channels using
 > `concat` and group them (using `groupTuple` and `map`) so that the output of the `grouped_files` looks similar to this:
@@ -712,7 +712,7 @@ c
 > >     )
 > > }
 > > ~~~
-> > {: .language-javascript}
+> > {: .language-groovy}
 > {: .solution}
 {: .challenge}
 
@@ -727,7 +727,7 @@ Channel
     .splitCsv()
     .view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 [alpha, beta, gamma]
 [10, 20, 30]
@@ -751,7 +751,7 @@ Channel
     .splitCsv()
     .view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 [alpha, beta, gamma]
 [10, 20, 30]
@@ -771,7 +771,7 @@ target = Channel.from( ['obs1', 'obs1_cand1.dat'], ['obs1', 'obs1_cand2.dat'], [
 
 source.cross(target).view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 [[obs1, obs1.dat], [obs1, obs1_cand1.dat]]
 [[obs1, obs1.dat], [obs1, obs1_cand2.dat]]
@@ -791,7 +791,7 @@ This can easily be maped to a process that will launch a job for each observatio
 > data = Channel.from( ['obs1.dat', 'obs2.dat'] )
 > candiates = Channel.from( ['obs1_cand1.dat', 'obs1_cand2.dat', 'obs1_cand3.dat', 'obs2_cand1.dat', 'obs2_cand2.dat'] )
 > ~~~
-> {: .language-javascript}
+> {: .language-groovy}
 >
 > You want to `map` the data so that the observation name can be used as a key, `cross` them so each
 > candidate has a observation data file, the reformat them so they're in the format:
@@ -800,7 +800,7 @@ This can easily be maped to a process that will launch a job for each observatio
 > eg:
 > [obs1, obs1.dat, obs1_cand1.dat]
 > ~~~
-> {: .language-javascript}
+> {: .language-groovy}
 > > ## Soultion
 > > ~~~
 > > // Use map to get an observation key
@@ -811,7 +811,7 @@ This can easily be maped to a process that will launch a job for each observatio
 > >     // Reformat to desired output
 > >     .map { it -> [ it[0][0], it[0][1], it[1][1] ] }.view()
 > > ~~~
-> > {: .language-javascript}
+> > {: .language-groovy}
 > {: .solution}
 {: .challenge}
 
