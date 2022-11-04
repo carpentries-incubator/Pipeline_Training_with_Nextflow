@@ -14,11 +14,10 @@ keypoints:
 # What is Nextflow?
 According to its website:
 "[Nextflow](https://www.nextflow.io/) enables scalable and reproducible scientific workflows using software containers. It allows the adaptation of pipelines written in the most common scripting languages.
-
 Its fluent DSL simplifies the implementation and the deployment of complex parallel and reactive workflows on clouds and clusters."
 
 
-# Documentation
+# Where to get help
 The documentation for Nextflow can be found [here](https://www.nextflow.io/docs/latest/index.html) and is an excellent resource. I have included links to the relevant sections of the documentation in the headers of this tutorial's sections. There is also a [basic patterns](https://nextflow-io.github.io/patterns/index.html#_basic_patterns) which has examples or basic pipeline problems which can be very useful for beginners. There is also some [excellent training](https://training.seqera.io/) which also includes similar and more examples than what we will cover in this training. You can also ask for help on the [Nextflow slack channel](https://www.nextflow.io/slack-invite.html).
 
 
@@ -29,6 +28,9 @@ You can do this by either putting into a file and running that file using `nextf
 You can write on or more lines of code and press `Ctrl+r` to run it and see the output like so:
 
 ![nextflow_console](../fig/nextflow_console.png){: .width="400"}
+
+The output does not clear the output or move you to the bottom of the output window.
+To avoid confusion, it is best to clear the output window (using `Ctrl+w`) before rerunning the console.
 
 # Nextflow components
 Pipelines can be described using flowcharts.
@@ -42,6 +44,8 @@ The following is a simple example of how the components work together to create 
 
 ## [Channel](https://www.nextflow.io/docs/latest/channel.html)
 Often files or variables are handed to and from processes. Think of them as the arrows in a flow diagram.
+
+Feel free to copy and paste these examples into the Nextflow console to follow along.
 
 You can create channels of values using `of`:
 
@@ -79,7 +83,7 @@ which, as long as the file exists, will output:
 You can also use wildcards to collect files:
 
 ```
-myFileChannel = Channel.fromPath( '/data/big/*.txt' ).view()
+myFileChannel = Channel.fromPath( '/data/some/*.txt' ).view()
 ```
 {: .language-groovy}
 
@@ -101,23 +105,79 @@ Here is the syntax:
 ```
 process < name > {
 
-   [ directives ]
+    [ directives ]
 
-   input:
-    < process inputs >
+    input:
+        < process inputs >
 
-   output:
-    < process outputs >
+    output:
+        < process outputs >
 
-   when:
-    < condition >
+    when:
+        < condition >
 
-   [script|shell|exec]:
-   < user script to be executed >
+    [script|shell|exec]:
+    < user script to be executed >
 
 }
 ```
 {: .language-groovy}
+
+The script is surrounded by triple quotes and will use script by default.
+In the scripts you can use the `$` notation do denote the input variables like you would with a bash script like so:
+
+```
+process script_example {
+    input:
+        file some_file
+        val some_val
+
+    script:
+    """
+    some_script --input $some_file --option ${some_val}
+    """
+}
+```
+{: .language-groovy}
+
+Because bash also uses the `$` notation to denote values, we have to use `\$` to make Nextflow ignore the `$`
+so it can still be used by bash. For example:
+
+```
+process script_example {
+    input:
+        file some_file
+        val some_val
+
+    script:
+    """
+    for bash_val in \$(seq 3); do
+        some_script --input $some_file --option ${some_val} --other \${bash_val} --user \$USER
+    done
+    """
+}
+```
+{: .language-groovy}
+
+Because this can be confusing, you can instead use [shell](https://www.nextflow.io/docs/latest/process.html#shell)
+which uses `!` to denote Nextflow values. So the above can instead be written as:
+
+```
+process shell_example {
+    input:
+        file some_file
+        val some_val
+
+    shell:
+    """
+    for bash_val in $(seq 3); do
+        some_script --input !some_file --option !{some_val} --other ${bash_val} --user $USER
+    done
+    """
+}
+```
+{: .language-groovy}
+
 
 By default, the process will be executed as a bash script, but you can easily add the languages shebang to the first line of the script.
 For example, you could write a python process like so:
