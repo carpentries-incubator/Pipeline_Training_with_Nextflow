@@ -20,3 +20,5 @@ Gemfile.lock
 code/work/
 code/.nextflow*
 test.sif
+.nextflow/*
+work/*
