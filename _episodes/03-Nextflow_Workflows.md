@@ -30,7 +30,7 @@ You can also put your Nextflow pipelines on your PATH and treat them as you woul
 #!/usr/bin/env nextflow
 
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 With that running your pipeline becomes as easy as
 es are launched from the command line like so:
@@ -155,7 +155,7 @@ By default, the work directory is `./work` but it can be altered by setting
 workDir = "/data/dir/for/work"
 
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 in the `nextflow.config` file or on the command line with `-w /data/dir/for/work`.
 
@@ -301,7 +301,7 @@ workflow {
    python_job()
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 When I run this pipeline, Nextflow will output a verbose error message:
 
@@ -437,7 +437,7 @@ You can use `publishDir` to output files to a directory outside the Nextflow wor
 For example:
 
 ```
-process for {
+process final_data {
     publishDir '/home/data/'
 
     output:
@@ -448,6 +448,25 @@ process for {
     '''
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
-This will output the science.data file to /home/data
+This will output the science.data file to /home/data/.
+
+By default, `publishDir` outputs the files as symlinks so you will lose the published data once you delete the work directory.
+Instead you can use `copy` as the `publishDir` `mode` like so:
+
+```
+process final_data {
+    publishDir '/home/data/', mode: 'copy'
+
+    output:
+    file 'science.data'
+
+    '''
+    echo "Some Science" > science.data
+    '''
+}
+```
+{: .language-groovy}
+
+It is normally best to use `copy` instead of `move` as the pipeline will have to rerun the process if the output data is moved out of the work directory.

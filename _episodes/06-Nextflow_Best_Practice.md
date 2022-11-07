@@ -30,7 +30,7 @@ The hierarchy of how parameters are used is as follows:
 Having multiple places where parameters can be defined provides some flexibility but can be *super confusing* for anyone trying to modify or use the workflow.
 To reduce the confusion we recommend that a workflow keep the `.nf` file free of user configurable parameters, but instead keep them all in a `nextflow.config` file.
 
-As we noted in the [Nextflow Orchestration]({{ page.root }}{% link _episodes/04-Nextflow_Orchestration.md %}) episode,
+As we noted in the [Nextflow Orchestration]({{ page.root }}{% link _episodes/05-Nextflow_Orchestration.md %}) episode,
 it is important to remember to keep anything that is computer specific in the `nextflow.config`.
 This will ensure that your pipeline can be run on any computer (laptop, supercomputers or cloudcomputing) without having to edit the workflow script.
 It is much easier for a user to edit the `nextflow.config` file to run the pipeline how they see fit.
@@ -67,7 +67,7 @@ if ( params.help ) {
     exit(0)
 }
 ~~~
-{: .language-javascript}
+{: .language-groovy}
 
 As the above example shows you will have to manually indent your help (unless someone wants to share a nice trick?).
 It can be helpful to split your help into difference sections such as "Required arguments" to let users know the bare minimum they need to include to get the script running.
@@ -135,7 +135,7 @@ manifest {
     version = "1.0.0"
 }
 ~~~
-{: .language-javascript}
+{: .language-groovy}
 (This format can also be used for defining variables within the `params` scope).
 
 This metadata should be defined within your `nextflow.config` file.
@@ -143,7 +143,7 @@ Sadly the `manifest` object doesn't get passed to your `.nf` file on execution s
 ~~~
 params.manifest=manifest
 ~~~
-{: .language-javascript}
+{: .language-groovy}
 
 With this in place you can access the manifest variables `params.manifest.version` from within your `.nf` file.
 
@@ -186,7 +186,7 @@ log.info """\
          """
          .stripIndent()
 ~~~
-{: .language-javascript}
+{: .language-groovy}
 
 Which would produce output like this:
 ~~~
@@ -223,7 +223,7 @@ process final{
   """
 }
 ~~~
-{: .language-javascript}
+{: .language-groovy}
 
 This process can then be used to log all the metadata that you want to store about each run of the workflow.
 
@@ -370,7 +370,7 @@ workflow workflow_name {
         bar.out
 }
 ~~~
-{: .language-javascript}
+{: .language-groovy}
 where `take` is the input channels, `main` are the workflow processes and `emit` is the output channels.
 
 You can split your pipeline into several workflows to help them become more modular.
@@ -399,7 +399,7 @@ workflow {
         search(process.out)
 }
 ~~~
-{: .language-javascript}
+{: .language-groovy}
 
 You may have noticed that the module include command (`include { process } from './process_module'`) is a relative directory call.
 The easiest way to handle this, is keep all of your files within the same directory and add this directory to your `PATH`.
@@ -418,7 +418,7 @@ process ignoreAnyError {
   <your command string here>
 }
 ~~~
-{: .language-javascript}
+{: .language-groovy}
 
 This will record any failures but not stops the pipeline.
 
@@ -432,7 +432,7 @@ process retryIfFail {
   <your command string here>
 }
 ~~~
-{: .language-javascript}
+{: .language-groovy}
 
 Which will retry the process once by default.
 Some say insanity is doing the same thing and expecting a different result.
@@ -447,7 +447,7 @@ process retryIfFail {
   <your command string here>
 }
 ~~~
-{: .language-javascript}
+{: .language-groovy}
 
 In the above example we have used a closure (curly brackets) to calculate how much memory to give to each attempt.
 So the process will ask for 10 GB, then 20 GB and finally 30 GB and if the job still fails with 30 GB then it stops the pipeline and outputs the error.

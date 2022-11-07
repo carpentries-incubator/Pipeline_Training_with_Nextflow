@@ -14,11 +14,10 @@ keypoints:
 # What is Nextflow?
 According to its website:
 "[Nextflow](https://www.nextflow.io/) enables scalable and reproducible scientific workflows using software containers. It allows the adaptation of pipelines written in the most common scripting languages.
-
 Its fluent DSL simplifies the implementation and the deployment of complex parallel and reactive workflows on clouds and clusters."
 
 
-# Documentation
+# Where to get help
 The documentation for Nextflow can be found [here](https://www.nextflow.io/docs/latest/index.html) and is an excellent resource. I have included links to the relevant sections of the documentation in the headers of this tutorial's sections. There is also a [basic patterns](https://nextflow-io.github.io/patterns/index.html#_basic_patterns) which has examples or basic pipeline problems which can be very useful for beginners. There is also some [excellent training](https://training.seqera.io/) which also includes similar and more examples than what we will cover in this training. You can also ask for help on the [Nextflow slack channel](https://www.nextflow.io/slack-invite.html).
 
 
@@ -29,6 +28,9 @@ You can do this by either putting into a file and running that file using `nextf
 You can write on or more lines of code and press `Ctrl+r` to run it and see the output like so:
 
 ![nextflow_console](../fig/nextflow_console.png){: .width="400"}
+
+The output does not clear the output or move you to the bottom of the output window.
+To avoid confusion, it is best to clear the output window (using `Ctrl+w`) before rerunning the console.
 
 # Nextflow components
 Pipelines can be described using flowcharts.
@@ -43,13 +45,15 @@ The following is a simple example of how the components work together to create 
 ## [Channel](https://www.nextflow.io/docs/latest/channel.html)
 Often files or variables are handed to and from processes. Think of them as the arrows in a flow diagram.
 
+Feel free to copy and paste these examples into the Nextflow console to follow along.
+
 You can create channels of values using `of`:
 
 ```
 ch = Channel.of( 1, 3, 5, 7 )
 ch.view { "value: $it" }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 which will output:
 
@@ -67,7 +71,7 @@ You can create channels of files using `fromPath`:
 myFileChannel = Channel.fromPath( '/data/some/bigfile.txt' )
 myFileChannel.view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 which, as long as the file exists, will output:
 
@@ -79,9 +83,9 @@ which, as long as the file exists, will output:
 You can also use wildcards to collect files:
 
 ```
-myFileChannel = Channel.fromPath( '/data/big/*.txt' ).view()
+myFileChannel = Channel.fromPath( '/data/some/*.txt' ).view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 which could output someting like:
 
@@ -101,23 +105,79 @@ Here is the syntax:
 ```
 process < name > {
 
-   [ directives ]
+    [ directives ]
 
-   input:
-    < process inputs >
+    input:
+        < process inputs >
 
-   output:
-    < process outputs >
+    output:
+        < process outputs >
 
-   when:
-    < condition >
+    when:
+        < condition >
 
-   [script|shell|exec]:
-   < user script to be executed >
+    [script|shell|exec]:
+    < user script to be executed >
 
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
+
+The script is surrounded by triple quotes and will use script by default.
+In the scripts you can use the `$` notation do denote the input variables like you would with a bash script like so:
+
+```
+process script_example {
+    input:
+        file some_file
+        val some_val
+
+    script:
+    """
+    some_script --input $some_file --option ${some_val}
+    """
+}
+```
+{: .language-groovy}
+
+Because bash also uses the `$` notation to denote values, we have to use `\$` to make Nextflow ignore the `$`
+so it can still be used by bash. For example:
+
+```
+process script_example {
+    input:
+        file some_file
+        val some_val
+
+    script:
+    """
+    for bash_val in \$(seq 3); do
+        some_script --input $some_file --option ${some_val} --other \${bash_val} --user \$USER
+    done
+    """
+}
+```
+{: .language-groovy}
+
+Because this can be confusing, you can instead use [shell](https://www.nextflow.io/docs/latest/process.html#shell)
+which uses `!` to denote Nextflow values. So the above can instead be written as:
+
+```
+process shell_example {
+    input:
+        file some_file
+        val some_val
+
+    shell:
+    """
+    for bash_val in $(seq 3); do
+        some_script --input !some_file --option !{some_val} --other ${bash_val} --user $USER
+    done
+    """
+}
+```
+{: .language-groovy}
+
 
 By default, the process will be executed as a bash script, but you can easily add the languages shebang to the first line of the script.
 For example, you could write a python process like so:
@@ -133,9 +193,9 @@ process pythonStuff {
     """
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
-## Variable
+## Variables
 Variables are easy to declare and similar to other languages.
 You should treat variables as constants as soon as the pipeline begins.
 If the variable is job-dependent, you should turn it into a channel.
@@ -151,7 +211,7 @@ params.input_dir = "/home/default/data/directory/"
 
 myFileChannel = Channel.fromPath( '${params.input_dir}/*csv' )
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 This will create a channel of all the CSV files in `/home/default/data/directory/` by default, but this can also be changed by using
 ```
@@ -173,12 +233,12 @@ process make_files {
    """for i in \$(seq 3); do touch ${observation_id}_\${i}_s_one.txt; done"""
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 You can see we're labelling the output files with the observation ID for all jobs.
 
 
-## [Worflow](https://www.nextflow.io/docs/latest/dsl2.html#workflow)
+## [Workflow](https://www.nextflow.io/docs/latest/dsl2.html#workflow)
 A workflow is a combination of processes that will include the entire workflow or a sub part of it (will be explained in a later section).
 This is where you will connect processes by their channels and and manipulate the channels so your pipeline runs in the required way.
 
@@ -188,7 +248,7 @@ workflow  {
     another_process( a_process.out.collect() )
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 Note that we get output from processes with `.out`, if there are mutiple outputs from a process you can treat it like a list so if you want the first output channel grab it with `.out[0]`.
 
@@ -229,7 +289,7 @@ workflow {
    echo_file(make_file.out).view()
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 This script has two simple processes.
 The first writes a variable to a file, then hands that file to the second process, which capitalises it and outputs it to the terminal.
@@ -297,23 +357,91 @@ HELLO WORLD
 This is the output of our pipeline.
 Normally we don't output anything for our pipeline to the command line (outside of debugging) but we saw it because we used `.view()`.
 
+> ## Simple script challenge
+>
+> For this challenge we will use the simple script from before:
+>
+> ~~~
+> params.message = "hello world"
+>
+> process make_file {
+>     output:
+>         file "message.txt"
+>
+>     """
+>     echo "${params.message}" > message.txt
+>     """
+> }
+>
+> process echo_file {
+>     input:
+>         file message_file
+>     output:
+>         stdout
+>
+>     """
+>     cat ${message_file} | tr '[a-z]' '[A-Z]'
+>     """
+> }
+>
+> workflow {
+>    make_file()
+>    echo_file(make_file.out).view()
+> }
+> ~~~
+> {: .language-groovy}
+>
+> Your challenge is to change the `echo_file` process so that it changes the message to lowercase (instead of uppercase).
+> Then to confirm that it works, change the input message to "THIS SHOULD BE LOWERCASE" using the command line.
+> > ## Soultion
+> > This is the change to the `echo_file` process
+> > ~~~
+> > process echo_file {
+> >     input:
+> >         file message_file
+> >     output:
+> >         stdout
+> >
+> >     """
+> >     cat ${message_file} | tr '[A-Z]' '[a-z]'
+> >     """
+> > }
+> > ~~~
+> > {: .language-groovy}
+> > which when run like so:
+> > ~~~
+> > nextflow run simple_script_challange.nf --message "THIS SHOULD BE LOWERCASE"
+> > ~~~
+> > {:. language-bash}
+> > will output
+> > ~~~
+> > N E X T F L O W  ~  version 22.04.5
+> > Launching `simple_script_challange.nf` [wise_davinci] DSL2 - revision: e1bf2b9b55
+> > executor >  local (2)
+> > [40/bbe0be] process > make_file [100%] 1 of 1 ✔
+> > [d1/044ad5] process > echo_file [100%] 1 of 1 ✔
+> > this should be lowercase
+> > ~~~
+> > {: .output}
+> {: .solution}
+{: .challenge}
 
 
+# All about channels and why we manipulate them?
 
-# Why do we want to manipulate Channels?
-
+The format of your channels is very important as it dictates how your pipeline will run.
+Each row of a channel will spawn its own job for each process, so the shape of the channel informs Nextflow how many jobs to launch and what input each job has.
 Manipulating channels is the most difficult parts of Nextlflow but it allows us create any type of pipeline.
-Each row of a channel will spawn its own job for each process, so the shape of the channel dictates how many jobs are launched and what inputs each job has.
 
 So we have a channel of three files like so:
 ```
 Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
-/home/nick/code/Nextflow_Training_2022B/code/file_1.txt
-/home/nick/code/Nextflow_Training_2022B/code/file_2.txt
-/home/nick/code/Nextflow_Training_2022B/code/file_3.txt
+/some/dir/file_1.txt
+/some/dir/file_2.txt
+/some/dir/file_3.txt
 ```
 {: .output}
 
@@ -322,9 +450,9 @@ If we instead wanted to create a single job that has access to all three files w
 ```
 Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).collect().view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
-[/home/nick/code/Nextflow_Training_2022B/code/file_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3.txt]
+[/some/dir/file_1.txt, /some/dir/file_2.txt, /some/dir/file_3.txt]
 ```
 {: .output}
 So now we have a single row of files. Just for fun, we can even use [`flatten`](https://www.nextflow.io/docs/latest/operator.html#flatten) to "flatten" them back to one file per row:
@@ -332,11 +460,11 @@ So now we have a single row of files. Just for fun, we can even use [`flatten`](
 ```
 Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).collect().flatten().view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
-/home/nick/code/Nextflow_Training_2022B/code/file_1.txt
-/home/nick/code/Nextflow_Training_2022B/code/file_2.txt
-/home/nick/code/Nextflow_Training_2022B/code/file_3.txt
+/some/dir/file_1.txt
+/some/dir/file_2.txt
+/some/dir/file_3.txt
 ```
 {: .output}
 
@@ -372,11 +500,15 @@ process all_files {
 
 workflow {
    make_files()
+   // flatten channel to make the dimensions 3 rows x 1 column
    each_file(make_files.out.flatten())
+   // collect channgel to make the dimensions 1 row x 3 columns
    all_files(make_files.out.collect())
+   // The above collect is redundant so you will get the same result from:
+   // all_files(make_files.out)
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 Which will output:
 ```
@@ -451,7 +583,7 @@ Channel
     .map { it * it }
     .view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 where `it` describes each item as `map` iterates over the channel. This will output:
 
 ```
@@ -471,7 +603,7 @@ Channel
     .map { it -> [ it[0], it[0] * it[0], it[1].split("_")[0], it[1].split("_")[1] ] }
     .view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 [1, 1, A, B]
 [2, 4, B, C]
@@ -489,7 +621,7 @@ Channel
     .groupTuple()
     .view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 [1, [A, B, C]]
 [2, [C, A]]
@@ -522,23 +654,23 @@ Channel
     // Remove the key so it can be easily input into a process
     .map{ it -> it[1] }.view{"step 3: $it"}
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
-step 1: [file_1, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_1.txt]
-step 1: [file_3, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_3.txt]
-step 1: [file_2, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_2.txt]
-step 1: [file_2, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_3.txt]
-step 1: [file_3, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_1.txt]
-step 1: [file_1, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_3.txt]
-step 1: [file_2, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_1.txt]
-step 1: [file_1, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_2.txt]
-step 1: [file_3, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_2.txt]
-step 2: [file_1, [/home/nick/code/Nextflow_Training_2022B/code/file_1_s_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_2.txt]]
-step 2: [file_3, [/home/nick/code/Nextflow_Training_2022B/code/file_3_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_2.txt]]
-step 2: [file_2, [/home/nick/code/Nextflow_Training_2022B/code/file_2_s_2.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_1.txt]]
-step 3: [/home/nick/code/Nextflow_Training_2022B/code/file_1_s_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_1_s_2.txt]
-step 3: [/home/nick/code/Nextflow_Training_2022B/code/file_3_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_1.txt, /home/nick/code/Nextflow_Training_2022B/code/file_3_s_2.txt]
-step 3: [/home/nick/code/Nextflow_Training_2022B/code/file_2_s_2.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_3.txt, /home/nick/code/Nextflow_Training_2022B/code/file_2_s_1.txt]
+step 1: [file_1, /some/dir/file_1_s_1.txt]
+step 1: [file_3, /some/dir/file_3_s_3.txt]
+step 1: [file_2, /some/dir/file_2_s_2.txt]
+step 1: [file_2, /some/dir/file_2_s_3.txt]
+step 1: [file_3, /some/dir/file_3_s_1.txt]
+step 1: [file_1, /some/dir/file_1_s_3.txt]
+step 1: [file_2, /some/dir/file_2_s_1.txt]
+step 1: [file_1, /some/dir/file_1_s_2.txt]
+step 1: [file_3, /some/dir/file_3_s_2.txt]
+step 2: [file_1, [/some/dir/file_1_s_1.txt, /some/dir/file_1_s_3.txt, /some/dir/file_1_s_2.txt]]
+step 2: [file_3, [/some/dir/file_3_s_3.txt, /some/dir/file_3_s_1.txt, /some/dir/file_3_s_2.txt]]
+step 2: [file_2, [/some/dir/file_2_s_2.txt, /some/dir/file_2_s_3.txt, /some/dir/file_2_s_1.txt]]
+step 3: [/some/dir/file_1_s_1.txt, /some/dir/file_1_s_3.txt, /some/dir/file_1_s_2.txt]
+step 3: [/some/dir/file_3_s_3.txt, /some/dir/file_3_s_1.txt, /some/dir/file_3_s_2.txt]
+step 3: [/some/dir/file_2_s_2.txt, /some/dir/file_2_s_3.txt, /some/dir/file_2_s_1.txt]
 ```
 {: .output}
 
@@ -555,7 +687,7 @@ c = Channel.from('p','q')
 
 c.concat( b, a ).view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 p
 q
@@ -568,60 +700,86 @@ c
 ```
 {: .output}
 
-Here is an example of combining the output of two processes and grouping them by their filename.
-
-```
-process make_files_one {
-   output:
-   file "file*.txt"
-
-   """for i in \$(seq 3); do touch file_\${i}_s_one.txt; done"""
-}
-
-process make_files_two {
-   output:
-   file "file*.txt"
-
-   """for i in \$(seq 3); do touch file_\${i}_s_two.txt; done"""
-}
-
-
-process grouped_files {
-   echo true
-
-   input:
-   tuple file(first_file), file(second_file)
-   """echo 'I have ${first_file} and ${second_file}'"""
-}
-
-workflow {
-   make_files_one()
-   make_files_two()
-   grouped_files(
-       // Label the files with their prefix
-       make_files_one.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }.\
-       // Concat them with the other process
-       concat(make_files_two.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }).\
-       // Group the files by this prefix
-       groupTuple().map { it -> [ it[1][0], it[1][1] ] })
-}
-```
-{: .language-javascript}
-
-```
-N E X T F L O W  ~  version 21.04.3
-Launching `channel_tuples.nf` [stoic_liskov] - revision: 79877921ac
-executor >  local (5)
-[b2/7e78a1] process > make_files_one    [100%] 1 of 1 ✔
-[bc/285fad] process > make_files_two    [100%] 1 of 1 ✔
-[bc/da6cc3] process > grouped_files (1) [100%] 3 of 3 ✔
-I have file_2_s_one.txt and file_2_s_two.txt
-
-I have file_3_s_one.txt and file_3_s_two.txt
-
-I have file_1_s_one.txt and file_1_s_two.txt
-```
-{: .output}
+> ## Concat challenge
+>
+> Here is an example of an incomplete pipeline that combines the output of two processes and grouping them by their filename.
+>
+> ~~~
+> process make_files_one {
+>    output:
+>    file "file*.txt"
+>
+>    """for i in \$(seq 3); do touch file_\${i}_s_one.txt; done"""
+> }
+>
+> process make_files_two {
+>    output:
+>    file "file*.txt"
+>
+>    """for i in \$(seq 3); do touch file_\${i}_s_two.txt; done"""
+> }
+>
+>
+> process grouped_files {
+>    echo true
+>
+>    input:
+>    tuple file(first_file), file(second_file)
+>    """echo 'I have ${first_file} and ${second_file}'"""
+> }
+>
+> workflow {
+>    make_files_one()
+>    make_files_two()
+>    // Label the files with their prefix
+>    files_one = make_files_one.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }
+>    files_two = make_files_two.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }
+>    grouped_files(
+>        // Concat them with the other process
+>        // YOUR CODE HERE
+>        // Group the files by this prefix then remove the prefix
+>        // YOUR CODE HERE
+>     )
+> }
+> ~~~
+> {: .language-groovy}
+>
+> Your challenge is to complete the pipeline by combining the `files_one` and `files_two` channels using
+> `concat` and group them (using `groupTuple` and `map`) so that the output of the `grouped_files` looks similar to this:
+>
+> ~~~
+> N E X T F L O W  ~  version 21.04.3
+> Launching `channel_tuples.nf` [stoic_liskov] - revision: 79877921ac
+> executor >  local (5)
+> [b2/7e78a1] process > make_files_one    [100%] 1 of 1 ✔
+> [bc/285fad] process > make_files_two    [100%] 1 of 1 ✔
+> [bc/da6cc3] process > grouped_files (1) [100%] 3 of 3 ✔
+> I have file_2_s_one.txt and file_2_s_two.txt
+>
+> I have file_3_s_one.txt and file_3_s_two.txt
+>
+> I have file_1_s_one.txt and file_1_s_two.txt
+> ~~~
+> {: .output}
+> > ## Soultion
+> > ~~~
+> > workflow {
+> >    make_files_one()
+> >    make_files_two()
+> >    // Label the files with their prefix
+> >    files_one = make_files_one.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }
+> >    files_two = make_files_two.out.flatten().map{ it -> [it.baseName.split("_s_")[0], it ] }
+> >    grouped_files(
+> >        // Concat them with the other process
+> >        files_one.concat(files_two)
+> >        // Group the files by this prefix then remove the prefix
+> >        .groupTuple().map { it -> [ it[1][0], it[1][1] ] }
+> >     )
+> > }
+> > ~~~
+> > {: .language-groovy}
+> {: .solution}
+{: .challenge}
 
 
 ## [splitCsv](https://www.nextflow.io/docs/latest/operator.html#splitcsv)
@@ -634,7 +792,7 @@ Channel
     .splitCsv()
     .view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 [alpha, beta, gamma]
 [10, 20, 30]
@@ -658,7 +816,7 @@ Channel
     .splitCsv()
     .view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 [alpha, beta, gamma]
 [10, 20, 30]
@@ -678,7 +836,7 @@ target = Channel.from( ['obs1', 'obs1_cand1.dat'], ['obs1', 'obs1_cand2.dat'], [
 
 source.cross(target).view()
 ```
-{: .language-javascript}
+{: .language-groovy}
 ```
 [[obs1, obs1.dat], [obs1, obs1_cand1.dat]]
 [[obs1, obs1.dat], [obs1, obs1_cand2.dat]]
@@ -689,5 +847,37 @@ source.cross(target).view()
 {: .output}
 
 This can easily be maped to a process that will launch a job for each observation data file and candidate information.
+
+> ## Cross Challange
+>
+> Similar to the previous example, you have of your observation data files and the observation candidates:
+>
+> ~~~
+> data = Channel.from( ['obs1.dat', 'obs2.dat'] )
+> candiates = Channel.from( ['obs1_cand1.dat', 'obs1_cand2.dat', 'obs1_cand3.dat', 'obs2_cand1.dat', 'obs2_cand2.dat'] )
+> ~~~
+> {: .language-groovy}
+>
+> You want to `map` the data so that the observation name can be used as a key, `cross` them so each
+> candidate has a observation data file, the reformat them so they're in the format:
+> ~~~
+> [obsname, obs_data, obs_cand]
+> eg:
+> [obs1, obs1.dat, obs1_cand1.dat]
+> ~~~
+> {: .language-groovy}
+> > ## Soultion
+> > ~~~
+> > // Use map to get an observation key
+> > data = data.map { it -> [ it.split("_")[0], it ] }
+> > candiates = candiates.map { it -> [ it.split("_")[0], it ] }
+> > // Cross the data
+> > data.cross(candiates)
+> >     // Reformat to desired output
+> >     .map { it -> [ it[0][0], it[0][1], it[1][1] ] }.view()
+> > ~~~
+> > {: .language-groovy}
+> {: .solution}
+{: .challenge}
 
 

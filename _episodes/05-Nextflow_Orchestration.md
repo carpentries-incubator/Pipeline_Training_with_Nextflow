@@ -25,37 +25,6 @@ Nextflow gives you the flexibility that you can run your pipelines locally, usin
 
 We will show you how to create these `nextflow.config` files but first it is best to understand labels.
 
-### [Label](https://www.nextflow.io/docs/latest/process.html#label)
-You can label your process, which is a useful way to group your processes that need a similar configuration.
-You can give multiple processes the same label and you can give a process multiple labels.
-
-The two most common label uses are for to group process that have the same software dependancies and resource requirements.
-For example, you could label all processes that require a particular container or need a lot of memory or a GPU like so:
-
-```
-process bigTask {
-  label 'big_mem'
-  label 'numpy'
-
-  """
-  <task script>
-  """
-}
-
-process gpuTask {
-  label 'gpu'
-  label 'numpy'
-
-  """
-  <task script>
-  """
-}
-```
-{: .language-javascript}
-
-In this example you can see the `bigTask` has the label 'big_mem' and `gpuTask` has the label 'gpu' which we will use in the cofiguration to give request a job with a lot of memory and a GPU respectively.
-Both processes have the 'numpy' label which can be used to make sure a numpy software dependancy is loaded for that job, either natively or through a container.
-
 
 ## [Configuration](https://www.nextflow.io/docs/latest/config.html)
 When a Nextflow script is launched, it will look for configuration files in multiple locations.
@@ -85,14 +54,14 @@ params.test1 = 'nextflow.config'
 // Something that can't
 test2 = 'nextflow.config'
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 Then tried to run a script `test_config.nf` which contained:
 ```
 println("test1: " + params.test1)
 println("test2: " + test2)
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 Running it would output:
 ```
@@ -114,7 +83,7 @@ For example I can set the executor as local and only run up to two jobs at once 
 executor.name = 'local'
 executor.queueSize = 2
 ```
-{: .language-javascript}
+{: .language-groovy}
 or
 ```
 executor {
@@ -122,7 +91,7 @@ executor {
     queueSize = 2
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 
 ## [Containers](https://www.nextflow.io/docs/latest/container.html#)
@@ -149,7 +118,7 @@ To test that these Nextflow is using a container, we will make a simple script t
 >     python_location.out.view()
 > }
 > ~~~
-> {: .language-javascript}
+> {: .language-groovy}
 {: .callout}
 
 If you run this script before loadin containters you should see an output like this:
@@ -174,7 +143,7 @@ To do this add the following to your `nextflow.config`
 > process.container = 'python:3.3.5'
 > docker.enabled = true
 > ~~~
-> {: .language-javascript}
+> {: .language-groovy}
 {: .callout}
 
 If you have Docker installed and setup you should be able to rerun `container.nf` and Nextflow will download the image for you and use it:
@@ -209,7 +178,7 @@ Using a singularity image is similar to Docker but you must point to the Singula
 > process.container = '/path/to/singularity.img'
 > singularity.enabled = true
 > ~~~
-> {: .language-javascript}
+> {: .language-groovy}
 {: .callout}
 
 If you have many containers of your dependancies with multiple versions you may want to organise all versions of a dependancy into a single directory like so:
@@ -223,6 +192,37 @@ If you have many containers of your dependancies with multiple versions you may 
     └── 3.7.img
 ```
 
+
+### [Label](https://www.nextflow.io/docs/latest/process.html#label)
+You can label your process, which is a useful way to group your processes that need a similar configuration.
+You can give multiple processes the same label and you can give a process multiple labels.
+
+The two most common label uses are for to group process that have the same software dependancies and resource requirements.
+For example, you could label all processes that require a particular container or need a lot of memory or a GPU like so:
+
+```
+process bigTask {
+  label 'big_mem'
+  label 'numpy'
+
+  """
+  <task script>
+  """
+}
+
+process gpuTask {
+  label 'gpu'
+  label 'numpy'
+
+  """
+  <task script>
+  """
+}
+```
+{: .language-groovy}
+
+In this example you can see the `bigTask` has the label 'big_mem' and `gpuTask` has the label 'gpu' which we will use in the cofiguration to give request a job with a lot of memory and a GPU respectively.
+Both processes have the 'numpy' label which can be used to make sure a numpy software dependancy is loaded for that job, either natively or through a container.
 
 ## Setting up process configuration based on labels
 Lets say your pipeline wants to run on a supercomputer that uses the SLURM scheduler and you have some jobs that are memory intensive and some that aren't.
@@ -252,7 +252,7 @@ process {
     cache = 'lenient'
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 
 In a similar what you can set up how Nextflow loads dependancies, say for a Python singularity image and software called presto that can be loaded using `module`.
@@ -267,7 +267,7 @@ process {
     }
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 Where [beforeScript](https://www.nextflow.io/docs/latest/process.html#beforescript) runs before the process which makes it ideal for loading the required software.
 
@@ -296,7 +296,7 @@ profiles {
 
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 And then declared on runtime like so:
 
@@ -320,7 +320,7 @@ profiles {
     }
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
 
 ## An alternative to profiles
 It can be annoying to always having to declare the profile you want to use on the command line.
@@ -359,4 +359,4 @@ else {
 
 }
 ```
-{: .language-javascript}
+{: .language-groovy}
