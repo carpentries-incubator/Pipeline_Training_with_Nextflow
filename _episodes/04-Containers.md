@@ -16,15 +16,6 @@ keypoints:
 - You can download and share containers with dockerhub
 - Building docker containers uses similar commands to installing software on your computer
 ---
-<!--
-Understand containers:
-- What containers are and how they can be used on a PC or HPC
-- The difference between Docker and Singularity
-Work with containers:
-- Build docker containers on a local machine
-- Use docker hub to store containers
-- Convert Docker -> Singularity on a local machine or via docker hub
-- -->
 
 ## Goal
 There are two main goals that we hope to achieve by using containers:
@@ -92,6 +83,8 @@ We will begin our journey by working with the "Hello World" docker container.
 > $ docker run hello-world
 > ~~~
 > {: .language-bash}
+> 
+> Use the [etherpad](https://pad.carpentries.org/ADACS_NextFlow) if you run into problems or have questions.
 > > ## Solution
 > > ~~~
 > > Unable to find image 'hello-world:latest' locally
@@ -135,7 +128,7 @@ Let's start with the `ubuntu` container, which contains a naked install of Ubunt
 > $ docker run -it ubuntu bash
 > ~~~
 > {: .language-bash}
-> Explore the container system, look at what software/libraries are available.
+> Explore the container system, look at what software/libraries are available, and share your results in the [etherpad](https://pad.carpentries.org/ADACS_NextFlow).
 > > ## Solution
 > > ~~~
 > > Unable to find image 'ubuntu:latest' locally
@@ -187,6 +180,8 @@ The second option is often best when you are developing code that needs to run w
 > ~~~
 > {: .language-bash}
 > Navigate to the `/app` directory and run `python do_things.py`
+>
+> Share your hello message in the [etherpad](https://pad.carpentries.org/ADACS_NextFlow).
 {: .challenge}
 
 In the above exercise you should see that the host name is some random string of letters and numbers, which is (hopefully) different from your local machines name.
@@ -269,6 +264,7 @@ Typically people use either a version number (eg, v1.0) or `latest` as the tag, 
 > - set the default `WORKDIR` to be `/app`
 > - set the default command (`CMD`) to be the above script with `--help`
 >
+> Share your tips and pitfalls in the [etherpad](https://pad.carpentries.org/ADACS_NextFlow).
 > > ## Solution
 > > ~~~
 > > # use a pre-made container as base
@@ -312,6 +308,8 @@ Typically people use either a version number (eg, v1.0) or `latest` as the tag, 
 > To access this file we need to bind our local directory to the working directory (`/app`) within the container.
 >
 > Run the container with the appropriate binding and view the output file.
+>
+> Share your results in the [etherpad](https://pad.carpentries.org/ADACS_NextFlow).
 > > ## Solution
 > > ~~~
 > > $ docker run --mount type=bind,source="$(pwd)",target=/app test area_of_ngon.py 4
@@ -425,6 +423,7 @@ Singularity offers multiple ways to interact with a container:
 > 3. Use `module load` to load singularity/apptainer
 > 4. Try the singularity run/exec/shell commands on your container
 >
+> Reach out via the [etherpad](https://pad.carpentries.org/ADACS_NextFlow) or raise your hand if you have questions or get stuck.
 > > ## Example
 > > (For Pawsey)
 > > ~~~

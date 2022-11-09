@@ -393,6 +393,8 @@ Normally we don't output anything for our pipeline to the command line (outside 
 >
 > Your challenge is to change the `echo_file` process so that it changes the message to lowercase (instead of uppercase).
 > Then to confirm that it works, change the input message to "THIS SHOULD BE LOWERCASE" using the command line.
+> 
+> Remember to use the [etherpad](https://pad.carpentries.org/ADACS_NextFlow) to share your success or ask questions.
 > > ## Soultion
 > > This is the change to the `echo_file` process
 > > ~~~
@@ -761,6 +763,8 @@ c
 > I have file_1_s_one.txt and file_1_s_two.txt
 > ~~~
 > {: .output}
+> 
+> Use the [etherpad](https://pad.carpentries.org/ADACS_NextFlow) to let us know how you are going.
 > > ## Soultion
 > > ~~~
 > > workflow {
@@ -866,6 +870,8 @@ This can easily be maped to a process that will launch a job for each observatio
 > [obs1, obs1.dat, obs1_cand1.dat]
 > ~~~
 > {: .language-groovy}
+> 
+> Share your answer or ask questions via the [etherpad](https://pad.carpentries.org/ADACS_NextFlow).
 > > ## Soultion
 > > ~~~
 > > // Use map to get an observation key
