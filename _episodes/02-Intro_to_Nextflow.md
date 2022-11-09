@@ -230,7 +230,7 @@ process make_files {
    output:
    file "*.txt"
 
-   """for i in \$(seq 3); do touch ${observation_id}_\${i}_s_one.txt; done"""
+   """for i in \$(seq 3); do touch ${params.observation_id}_\${i}_s_one.txt; done"""
 }
 ```
 {: .language-groovy}
