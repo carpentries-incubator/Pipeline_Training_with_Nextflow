@@ -271,6 +271,23 @@ process {
 
 Where [beforeScript](https://www.nextflow.io/docs/latest/process.html#beforescript) runs before the process which makes it ideal for loading the required software.
 
+> ## Challenge part 1
+> Create a workflow in which the process `ML_things` is run using the container `tensorflow/tensorflow:latest`, and another process `python_things` is run using the container `python:3.8.5`.
+> Give these two processes a label, and then use the `process` scope in a `nextflow.config` file to set the containers for each to use.
+>
+> > ## Solution
+> > TODO
+> {: .solution}
+{: .challenge}
+
+> ## Challenge part 1
+> Modify your `nextflow.config` so that the processes that use the tensorflow containers run on an HPC queue called `gpuq` and those that use the python container run on a queue called `workq`.
+>
+> > ## Solution
+> > TODO
+> {: .solution}
+{: .challenge}
+
 
 ## [Config profiles](https://www.nextflow.io/docs/latest/config.html#config-profiles)
 You can create sets of configuration attributes called profiles.
