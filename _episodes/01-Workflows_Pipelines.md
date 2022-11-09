@@ -9,7 +9,9 @@ questions:
 objectives:
 - Understand the components of a workflow
 keypoints:
--
+- Everything is a workflow
+- Adopt a workflow mindset for your research
+- NextFlow can help orchestrate your workflows
 ---
 
 ## What is a workflow?
@@ -29,12 +31,12 @@ And as an astronomer you can appreciate the following [flow-chart](https://ui.ad
 
 In research we live with a combination of the two types of workflows.
 We have a high level understanding of the research workflow, for example:
-- Exploring what is known
-- Formulation of an hypothesis
-- Collecting data
-- Analyzing data
-- Testing hypothesis
-- Publishing results
+1. Exploring what is known
+2. Formulation of an hypothesis
+3. Collecting data
+4. Analyzing data
+5. Testing hypothesis
+6. Publishing results
 
 Sadly this high level workflow isn't automated and each of the steps are rather vague so we need to adapt and refine it for each project.
 At a low level, there are many tasks that you do in your research that are (very nearly) the same every time you do them, and these are the tasks that you can automate.
@@ -61,6 +63,8 @@ This in turn means that we need to have a better idea of how we map our inputs t
 > Draw a three stage diagram which has a single box as your "task".
 >
 > Now think about how you can break this box into smaller linked pieces such that you have a more detailed map of how to get from inputs to outputs.
+>
+> Share your thoughts in the [etherpad](https://pad.carpentries.org/ADACS_NextFlow).
 > > ## Example
 > > Initial plan - make a map of my path home with weather info so I know if I should take a coat/umbrella.
 > > ![FlowV1]({{page.root}}{% link fig/FlowV1.png %}){: witdth='600'}
@@ -86,6 +90,7 @@ This in turn means that we need to have a better idea of how we map our inputs t
 >
 > Do the diagrams produced by people answering (1) differ from those produced by people answering (2)?
 >
+> Share your thoughts in the [etherpad](https://pad.carpentries.org/ADACS_NextFlow).
 {: .discussion}
 
 If you answered (2) in the above discussion then you are thinking about a **data-driven workflow**.
