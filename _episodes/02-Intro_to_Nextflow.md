@@ -207,18 +207,18 @@ The equivalent command line argument uses two dashes like so `--<some_variable>`
 
 For example:
 ```
-params.input_dir = "/home/default/data/directory/"
+params.input_dir = "/data/some/dir"
 
 myFileChannel = Channel.fromPath( '${params.input_dir}/*csv' )
 ```
 {: .language-groovy}
 
-This will create a channel of all the CSV files in `/home/default/data/directory/` by default, but this can also be changed by using
+This will create a channel of all the CSV files in `/data/some/dir/` by default, but this can also be changed by using
 ```
-nextflow run example.nf --input_dir /some/other/directory/
+nextflow run example.nf --input_dir /some/other/dir/
 ```
 {: .language-bash}
-Will instead use the CSVs in `/some/other/directory/`
+Will instead use the CSVs in `/some/other/dir/`
 
 If something is constant throughout the pipeline, you can leave it as a variable.
 One example could be some sort of observation identifier or date:
@@ -244,7 +244,7 @@ This is where you will connect processes by their channels and and manipulate th
 
 ```
 workflow  {
-    a_process( channel.from('/some/data') )
+    a_process( channel.from('/data/some/bigfile.txt') )
     another_process( a_process.out.collect() )
 }
 ```
@@ -445,9 +445,9 @@ Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).view()
 ```
 {: .language-groovy}
 ```
-/some/dir/file_1.txt
-/some/dir/file_2.txt
-/some/dir/file_3.txt
+/data/some/dir/file_1.txt
+/data/some/dir/file_2.txt
+/data/some/dir/file_3.txt
 ```
 {: .output}
 
@@ -458,7 +458,7 @@ Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).collect().view()
 ```
 {: .language-groovy}
 ```
-[/some/dir/file_1.txt, /some/dir/file_2.txt, /some/dir/file_3.txt]
+[/data/some/dir/file_1.txt, /data/some/dir/file_2.txt, /data/some/dir/file_3.txt]
 ```
 {: .output}
 So now we have a single row of files. Just for fun, we can even use [`flatten`](https://www.nextflow.io/docs/latest/operator.html#flatten) to "flatten" them back to one file per row:
@@ -468,9 +468,9 @@ Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).collect().flatten()
 ```
 {: .language-groovy}
 ```
-/some/dir/file_1.txt
-/some/dir/file_2.txt
-/some/dir/file_3.txt
+/data/some/dir/file_1.txt
+/data/some/dir/file_2.txt
+/data/some/dir/file_3.txt
 ```
 {: .output}
 
@@ -662,21 +662,21 @@ Channel
 ```
 {: .language-groovy}
 ```
-step 1: [file_1, /some/dir/file_1_s_1.txt]
-step 1: [file_3, /some/dir/file_3_s_3.txt]
-step 1: [file_2, /some/dir/file_2_s_2.txt]
-step 1: [file_2, /some/dir/file_2_s_3.txt]
-step 1: [file_3, /some/dir/file_3_s_1.txt]
-step 1: [file_1, /some/dir/file_1_s_3.txt]
-step 1: [file_2, /some/dir/file_2_s_1.txt]
-step 1: [file_1, /some/dir/file_1_s_2.txt]
-step 1: [file_3, /some/dir/file_3_s_2.txt]
-step 2: [file_1, [/some/dir/file_1_s_1.txt, /some/dir/file_1_s_3.txt, /some/dir/file_1_s_2.txt]]
-step 2: [file_3, [/some/dir/file_3_s_3.txt, /some/dir/file_3_s_1.txt, /some/dir/file_3_s_2.txt]]
-step 2: [file_2, [/some/dir/file_2_s_2.txt, /some/dir/file_2_s_3.txt, /some/dir/file_2_s_1.txt]]
-step 3: [/some/dir/file_1_s_1.txt, /some/dir/file_1_s_3.txt, /some/dir/file_1_s_2.txt]
-step 3: [/some/dir/file_3_s_3.txt, /some/dir/file_3_s_1.txt, /some/dir/file_3_s_2.txt]
-step 3: [/some/dir/file_2_s_2.txt, /some/dir/file_2_s_3.txt, /some/dir/file_2_s_1.txt]
+step 1: [file_1, /data/some/dir/file_1_s_1.txt]
+step 1: [file_3, /data/some/dir/file_3_s_3.txt]
+step 1: [file_2, /data/some/dir/file_2_s_2.txt]
+step 1: [file_2, /data/some/dir/file_2_s_3.txt]
+step 1: [file_3, /data/some/dir/file_3_s_1.txt]
+step 1: [file_1, /data/some/dir/file_1_s_3.txt]
+step 1: [file_2, /data/some/dir/file_2_s_1.txt]
+step 1: [file_1, /data/some/dir/file_1_s_2.txt]
+step 1: [file_3, /data/some/dir/file_3_s_2.txt]
+step 2: [file_1, [/data/some/dir/file_1_s_1.txt, /data/some/dir/file_1_s_3.txt, /data/some/dir/file_1_s_2.txt]]
+step 2: [file_3, [/data/some/dir/file_3_s_3.txt, /data/some/dir/file_3_s_1.txt, /data/some/dir/file_3_s_2.txt]]
+step 2: [file_2, [/data/some/dir/file_2_s_2.txt, /data/some/dir/file_2_s_3.txt, /data/some/dir/file_2_s_1.txt]]
+step 3: [/data/some/dir/file_1_s_1.txt, /data/some/dir/file_1_s_3.txt, /data/some/dir/file_1_s_2.txt]
+step 3: [/data/some/dir/file_3_s_3.txt, /data/some/dir/file_3_s_1.txt, /data/some/dir/file_3_s_2.txt]
+step 3: [/data/some/dir/file_2_s_2.txt, /data/some/dir/file_2_s_3.txt, /data/some/dir/file_2_s_1.txt]
 ```
 {: .output}
 
