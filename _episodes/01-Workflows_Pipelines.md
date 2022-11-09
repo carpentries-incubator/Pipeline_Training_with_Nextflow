@@ -97,18 +97,21 @@ If you answered (2) in the above discussion then you are thinking about a **data
 In a data-driven workflow each of our tasks takes input data and transforms it to produce output which is then passed to the next task.
 The ordering of tasks is implicit in the input/output chain that is specified.
 
-We can plan our execution by traverse our workflow in two directions:
-1. Forward:
+We can plan the work done based on either given inputs or the required outputs:
+1. Input driven:
    1. Start at the known inputs,
    2. Transforming them into outputs which are then fed to the next task,
-   3. Repeating until you arrive at the desired output.
-2. Backward:
-   1.  Starting at the final product and asking what inputs are required,
-   2.  Stepping back to see what is needed to make these inputs,
-   3.  Repeating until we have inputs that already exist and then executing the workflow from this point forward.
+   3. Repeating until there is no more work to be done.
+2. Output driven:
+   1.  Start at the required output and ask what inputs are required to produce it,
+   2.  Step back to see what is needed to make these inputs,
+   3.  Repeat until we have inputs that already exist and then execute the workflow from this point forward.
 
-By traversing the our workflow in reverse our work plan can avoid processing data that is not required for the desired output.
-This is how [Make](https://www.gnu.org/software/make/) behaves and it can solve a lot of time when you modify and restart a workflow which has previously been run.
+An output driven workflow can avoid processing data that is not required for the desired output.
+This is how [Make](https://www.gnu.org/software/make/) behaves and it can save a lot of time when you modify and restart a workflow which has previously been run.
+
+Regardless of the type of workflow that you are using there are various caching tricks that can be used to determine if a particular part of the workflow needs to be re-run.
+Typically this will be based on checking if the inputs or workflow description has changed, and only re-running the parts that have changed and the tasks that depend on them.
 
 ## How to implement workflows
 Despite the up-front designs that we may come up with, a workflow is going to naturally evolve and change as we encounter different problems and adjust our desired outputs.
