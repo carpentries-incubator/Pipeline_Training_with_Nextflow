@@ -191,6 +191,35 @@ So it's a good idea **not** to mount `/` inside the container!
 Being `root` user inside the container also means that any files which you create in the mounted directory will be owned by root on your local machine.
 Having root privileges within the container is a big reason why you wont see docker being provided on an HPC.
 
+## Managing containers
+Docker will keep all your images and containers organized for you but in a little bit of a hidden way.
+
+To see the images that you have available use `docker images`.
+And you'll get a listing similar to below:
+~~~
+$ docker images
+REPOSITORY                           TAG       IMAGE ID       CREATED         SIZE
+test                                 latest    98ba6115a75f   3 weeks ago     882MB
+ubuntu                               latest    216c552ea5ba   5 weeks ago     77.8MB
+python                               3.9       4819be0df942   8 months ago    912MB
+hello-world                          latest    feb5d9fea6a5   13 months ago   13.3kB
+python                               3.8.5     28a4c88cdbbf   2 years ago     882MB
+~~~
+{: .language-bash}
+
+The `REPOSITORY:TAG` is how you can refer to a particular version of a container.
+You can also use the `IMAGE ID` locally to refer to a container.
+Note the different sizes of the containers: `hello-world` is tiny because it does only one thing, `ubuntu` is 78MB and is the bare-bones you need to run ubuntu, but then `python:3.9` is nearly 1GB as it has a lot of different software installed within.
+
+These are just the containers that you have locally, and they may not be running.
+To see the **running** containers you can use `docker ps` which will show the containers that are running.
+If this is your first time running Docker containers then you'll probably have no running containers, however sometimes you'll run a container in detached mode (with `docker run -d`) which lets the container sit in the background and provide a service (usually some API or web site or a db connection).
+It's easy to forget about these running containers, so an occasional `docker ps` can show you what is running.
+If you want to stop a container you can find it's `CONTAINER ID` (not image id) from `docker ps` and then run `docker stop <id>`.
+
+Managing docker containers (and networks and volumes) can be tricky, and usually people use a manager such as [docker compose](https://docs.docker.com/compose/), to define container interactions and set up networks etc.
+We will not get further into managing container because, you guessed it, NextFlow can do this for us.
+
 
 ## Building (docker) containers
 As well as using pre-made containers, you can build your own.
