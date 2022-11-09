@@ -12,6 +12,7 @@ _site
 .RData
 .bundle/
 .vendor/
+.vscode/*
 vendor/
 .docker-vendor/
 Gemfile.lock
