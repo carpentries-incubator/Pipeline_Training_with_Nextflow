@@ -340,9 +340,9 @@ This is a count of where the jobs where executed. In this example, two jobs were
 [8a/8f3033] process > make_file [100%] 1 of 1 ✔
 ```
 {: .output}
-`[8a/8f3033]` is an idnetifier of the last job this processed lanuched (we will go into this in more detail later).
+`[8a/8f3033]` is an identifier of the last job this processed launched (we will go into this in more detail later).
 `process > make_file` this is the name of the process this line is describing.
-`[100%] 1 of 1 ✔` this describes how many of this process has been launched and how many have finished succesfully.
+`[100%] 1 of 1 ✔` this describes how many of this process has been launched and how many have finished successfully.
 
 ```
 [72/4df67e] process > echo_file [100%] 1 of 1 ✔
@@ -355,7 +355,11 @@ HELLO WORLD
 ```
 {: .output}
 This is the output of our pipeline.
-Normally we don't output anything for our pipeline to the command line (outside of debugging) but we saw it because we used `.view()`.
+Normally we don't output anything for our pipeline to the command line (outside of debugging) but we saw it because we used `.view()` on the output of `echo_file`.
+
+If we want to view the `message.txt` file we have to do a little digging because it's not in the directory in which we called NextFlow.
+NextFlow runs each process in it's own special directory so that concurrently running processes don't interfere with each other.
+We'll describe this in more detail in the [next lesson]({{page.root}}{% link _episodes/03-Nextflow_Workflows.md %}).
 
 > ## Simple script challenge
 >
