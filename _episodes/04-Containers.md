@@ -16,15 +16,6 @@ keypoints:
 - You can download and share containers with dockerhub
 - Building docker containers uses similar commands to installing software on your computer
 ---
-<!--
-Understand containers:
-- What containers are and how they can be used on a PC or HPC
-- The difference between Docker and Singularity
-Work with containers:
-- Build docker containers on a local machine
-- Use docker hub to store containers
-- Convert Docker -> Singularity on a local machine or via docker hub
-- -->
 
 ## Goal
 There are two main goals that we hope to achieve by using containers:
@@ -92,6 +83,8 @@ We will begin our journey by working with the "Hello World" docker container.
 > $ docker run hello-world
 > ~~~
 > {: .language-bash}
+> 
+> Use the [etherpad](https://pad.carpentries.org/ADACS_NextFlow) if you run into problems or have questions.
 > > ## Solution
 > > ~~~
 > > Unable to find image 'hello-world:latest' locally
@@ -135,7 +128,7 @@ Let's start with the `ubuntu` container, which contains a naked install of Ubunt
 > $ docker run -it ubuntu bash
 > ~~~
 > {: .language-bash}
-> Explore the container system, look at what software/libraries are available.
+> Explore the container system, look at what software/libraries are available, and share your results in the [etherpad](https://pad.carpentries.org/ADACS_NextFlow).
 > > ## Solution
 > > ~~~
 > > Unable to find image 'ubuntu:latest' locally
@@ -187,6 +180,8 @@ The second option is often best when you are developing code that needs to run w
 > ~~~
 > {: .language-bash}
 > Navigate to the `/app` directory and run `python do_things.py`
+>
+> Share your hello message in the [etherpad](https://pad.carpentries.org/ADACS_NextFlow).
 {: .challenge}
 
 In the above exercise you should see that the host name is some random string of letters and numbers, which is (hopefully) different from your local machines name.
@@ -195,6 +190,35 @@ If you bind a local path to one inside the container, then you'll have `root` ac
 So it's a good idea **not** to mount `/` inside the container!
 Being `root` user inside the container also means that any files which you create in the mounted directory will be owned by root on your local machine.
 Having root privileges within the container is a big reason why you wont see docker being provided on an HPC.
+
+## Managing containers
+Docker will keep all your images and containers organized for you but in a little bit of a hidden way.
+
+To see the images that you have available use `docker images`.
+And you'll get a listing similar to below:
+~~~
+$ docker images
+REPOSITORY                           TAG       IMAGE ID       CREATED         SIZE
+test                                 latest    98ba6115a75f   3 weeks ago     882MB
+ubuntu                               latest    216c552ea5ba   5 weeks ago     77.8MB
+python                               3.9       4819be0df942   8 months ago    912MB
+hello-world                          latest    feb5d9fea6a5   13 months ago   13.3kB
+python                               3.8.5     28a4c88cdbbf   2 years ago     882MB
+~~~
+{: .language-bash}
+
+The `REPOSITORY:TAG` is how you can refer to a particular version of a container.
+You can also use the `IMAGE ID` locally to refer to a container.
+Note the different sizes of the containers: `hello-world` is tiny because it does only one thing, `ubuntu` is 78MB and is the bare-bones you need to run ubuntu, but then `python:3.9` is nearly 1GB as it has a lot of different software installed within.
+
+These are just the containers that you have locally, and they may not be running.
+To see the **running** containers you can use `docker ps` which will show the containers that are running.
+If this is your first time running Docker containers then you'll probably have no running containers, however sometimes you'll run a container in detached mode (with `docker run -d`) which lets the container sit in the background and provide a service (usually some API or web site or a db connection).
+It's easy to forget about these running containers, so an occasional `docker ps` can show you what is running.
+If you want to stop a container you can find it's `CONTAINER ID` (not image id) from `docker ps` and then run `docker stop <id>`.
+
+Managing docker containers (and networks and volumes) can be tricky, and usually people use a manager such as [docker compose](https://docs.docker.com/compose/), to define container interactions and set up networks etc.
+We will not get further into managing container because, you guessed it, NextFlow can do this for us.
 
 
 ## Building (docker) containers
@@ -269,6 +293,7 @@ Typically people use either a version number (eg, v1.0) or `latest` as the tag, 
 > - set the default `WORKDIR` to be `/app`
 > - set the default command (`CMD`) to be the above script with `--help`
 >
+> Share your tips and pitfalls in the [etherpad](https://pad.carpentries.org/ADACS_NextFlow).
 > > ## Solution
 > > ~~~
 > > # use a pre-made container as base
@@ -312,6 +337,8 @@ Typically people use either a version number (eg, v1.0) or `latest` as the tag, 
 > To access this file we need to bind our local directory to the working directory (`/app`) within the container.
 >
 > Run the container with the appropriate binding and view the output file.
+>
+> Share your results in the [etherpad](https://pad.carpentries.org/ADACS_NextFlow).
 > > ## Solution
 > > ~~~
 > > $ docker run --mount type=bind,source="$(pwd)",target=/app test area_of_ngon.py 4
@@ -425,6 +452,7 @@ Singularity offers multiple ways to interact with a container:
 > 3. Use `module load` to load singularity/apptainer
 > 4. Try the singularity run/exec/shell commands on your container
 >
+> Reach out via the [etherpad](https://pad.carpentries.org/ADACS_NextFlow) or raise your hand if you have questions or get stuck.
 > > ## Example
 > > (For Pawsey)
 > > ~~~

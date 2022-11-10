@@ -207,18 +207,18 @@ The equivalent command line argument uses two dashes like so `--<some_variable>`
 
 For example:
 ```
-params.input_dir = "/home/default/data/directory/"
+params.input_dir = "/data/some/dir"
 
 myFileChannel = Channel.fromPath( '${params.input_dir}/*csv' )
 ```
 {: .language-groovy}
 
-This will create a channel of all the CSV files in `/home/default/data/directory/` by default, but this can also be changed by using
+This will create a channel of all the CSV files in `/data/some/dir/` by default, but this can also be changed by using
 ```
-nextflow run example.nf --input_dir /some/other/directory/
+nextflow run example.nf --input_dir /some/other/dir/
 ```
 {: .language-bash}
-Will instead use the CSVs in `/some/other/directory/`
+Will instead use the CSVs in `/some/other/dir/`
 
 If something is constant throughout the pipeline, you can leave it as a variable.
 One example could be some sort of observation identifier or date:
@@ -230,7 +230,7 @@ process make_files {
    output:
    file "*.txt"
 
-   """for i in \$(seq 3); do touch ${observation_id}_\${i}_s_one.txt; done"""
+   """for i in \$(seq 3); do touch ${params.observation_id}_\${i}_s_one.txt; done"""
 }
 ```
 {: .language-groovy}
@@ -244,7 +244,7 @@ This is where you will connect processes by their channels and and manipulate th
 
 ```
 workflow  {
-    a_process( channel.from('/some/data') )
+    a_process( channel.from('/data/some/bigfile.txt') )
     another_process( a_process.out.collect() )
 }
 ```
@@ -340,9 +340,9 @@ This is a count of where the jobs where executed. In this example, two jobs were
 [8a/8f3033] process > make_file [100%] 1 of 1 ✔
 ```
 {: .output}
-`[8a/8f3033]` is an idnetifier of the last job this processed lanuched (we will go into this in more detail later).
+`[8a/8f3033]` is an identifier of the last job this processed launched (we will go into this in more detail later).
 `process > make_file` this is the name of the process this line is describing.
-`[100%] 1 of 1 ✔` this describes how many of this process has been launched and how many have finished succesfully.
+`[100%] 1 of 1 ✔` this describes how many of this process has been launched and how many have finished successfully.
 
 ```
 [72/4df67e] process > echo_file [100%] 1 of 1 ✔
@@ -355,7 +355,11 @@ HELLO WORLD
 ```
 {: .output}
 This is the output of our pipeline.
-Normally we don't output anything for our pipeline to the command line (outside of debugging) but we saw it because we used `.view()`.
+Normally we don't output anything for our pipeline to the command line (outside of debugging) but we saw it because we used `.view()` on the output of `echo_file`.
+
+If we want to view the `message.txt` file we have to do a little digging because it's not in the directory in which we called NextFlow.
+NextFlow runs each process in it's own special directory so that concurrently running processes don't interfere with each other.
+We'll describe this in more detail in the [next lesson]({{page.root}}{% link _episodes/03-Nextflow_Workflows.md %}).
 
 > ## Simple script challenge
 >
@@ -393,6 +397,8 @@ Normally we don't output anything for our pipeline to the command line (outside 
 >
 > Your challenge is to change the `echo_file` process so that it changes the message to lowercase (instead of uppercase).
 > Then to confirm that it works, change the input message to "THIS SHOULD BE LOWERCASE" using the command line.
+> 
+> Remember to use the [etherpad](https://pad.carpentries.org/ADACS_NextFlow) to share your success or ask questions.
 > > ## Soultion
 > > This is the change to the `echo_file` process
 > > ~~~
@@ -439,9 +445,9 @@ Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).view()
 ```
 {: .language-groovy}
 ```
-/some/dir/file_1.txt
-/some/dir/file_2.txt
-/some/dir/file_3.txt
+/data/some/dir/file_1.txt
+/data/some/dir/file_2.txt
+/data/some/dir/file_3.txt
 ```
 {: .output}
 
@@ -452,7 +458,7 @@ Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).collect().view()
 ```
 {: .language-groovy}
 ```
-[/some/dir/file_1.txt, /some/dir/file_2.txt, /some/dir/file_3.txt]
+[/data/some/dir/file_1.txt, /data/some/dir/file_2.txt, /data/some/dir/file_3.txt]
 ```
 {: .output}
 So now we have a single row of files. Just for fun, we can even use [`flatten`](https://www.nextflow.io/docs/latest/operator.html#flatten) to "flatten" them back to one file per row:
@@ -462,9 +468,9 @@ Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).collect().flatten()
 ```
 {: .language-groovy}
 ```
-/some/dir/file_1.txt
-/some/dir/file_2.txt
-/some/dir/file_3.txt
+/data/some/dir/file_1.txt
+/data/some/dir/file_2.txt
+/data/some/dir/file_3.txt
 ```
 {: .output}
 
@@ -656,21 +662,21 @@ Channel
 ```
 {: .language-groovy}
 ```
-step 1: [file_1, /some/dir/file_1_s_1.txt]
-step 1: [file_3, /some/dir/file_3_s_3.txt]
-step 1: [file_2, /some/dir/file_2_s_2.txt]
-step 1: [file_2, /some/dir/file_2_s_3.txt]
-step 1: [file_3, /some/dir/file_3_s_1.txt]
-step 1: [file_1, /some/dir/file_1_s_3.txt]
-step 1: [file_2, /some/dir/file_2_s_1.txt]
-step 1: [file_1, /some/dir/file_1_s_2.txt]
-step 1: [file_3, /some/dir/file_3_s_2.txt]
-step 2: [file_1, [/some/dir/file_1_s_1.txt, /some/dir/file_1_s_3.txt, /some/dir/file_1_s_2.txt]]
-step 2: [file_3, [/some/dir/file_3_s_3.txt, /some/dir/file_3_s_1.txt, /some/dir/file_3_s_2.txt]]
-step 2: [file_2, [/some/dir/file_2_s_2.txt, /some/dir/file_2_s_3.txt, /some/dir/file_2_s_1.txt]]
-step 3: [/some/dir/file_1_s_1.txt, /some/dir/file_1_s_3.txt, /some/dir/file_1_s_2.txt]
-step 3: [/some/dir/file_3_s_3.txt, /some/dir/file_3_s_1.txt, /some/dir/file_3_s_2.txt]
-step 3: [/some/dir/file_2_s_2.txt, /some/dir/file_2_s_3.txt, /some/dir/file_2_s_1.txt]
+step 1: [file_1, /data/some/dir/file_1_s_1.txt]
+step 1: [file_3, /data/some/dir/file_3_s_3.txt]
+step 1: [file_2, /data/some/dir/file_2_s_2.txt]
+step 1: [file_2, /data/some/dir/file_2_s_3.txt]
+step 1: [file_3, /data/some/dir/file_3_s_1.txt]
+step 1: [file_1, /data/some/dir/file_1_s_3.txt]
+step 1: [file_2, /data/some/dir/file_2_s_1.txt]
+step 1: [file_1, /data/some/dir/file_1_s_2.txt]
+step 1: [file_3, /data/some/dir/file_3_s_2.txt]
+step 2: [file_1, [/data/some/dir/file_1_s_1.txt, /data/some/dir/file_1_s_3.txt, /data/some/dir/file_1_s_2.txt]]
+step 2: [file_3, [/data/some/dir/file_3_s_3.txt, /data/some/dir/file_3_s_1.txt, /data/some/dir/file_3_s_2.txt]]
+step 2: [file_2, [/data/some/dir/file_2_s_2.txt, /data/some/dir/file_2_s_3.txt, /data/some/dir/file_2_s_1.txt]]
+step 3: [/data/some/dir/file_1_s_1.txt, /data/some/dir/file_1_s_3.txt, /data/some/dir/file_1_s_2.txt]
+step 3: [/data/some/dir/file_3_s_3.txt, /data/some/dir/file_3_s_1.txt, /data/some/dir/file_3_s_2.txt]
+step 3: [/data/some/dir/file_2_s_2.txt, /data/some/dir/file_2_s_3.txt, /data/some/dir/file_2_s_1.txt]
 ```
 {: .output}
 
@@ -761,6 +767,8 @@ c
 > I have file_1_s_one.txt and file_1_s_two.txt
 > ~~~
 > {: .output}
+> 
+> Use the [etherpad](https://pad.carpentries.org/ADACS_NextFlow) to let us know how you are going.
 > > ## Soultion
 > > ~~~
 > > workflow {
@@ -854,7 +862,7 @@ This can easily be maped to a process that will launch a job for each observatio
 >
 > ~~~
 > data = Channel.from( ['obs1.dat', 'obs2.dat'] )
-> candiates = Channel.from( ['obs1_cand1.dat', 'obs1_cand2.dat', 'obs1_cand3.dat', 'obs2_cand1.dat', 'obs2_cand2.dat'] )
+> candidates = Channel.from( ['obs1_cand1.dat', 'obs1_cand2.dat', 'obs1_cand3.dat', 'obs2_cand1.dat', 'obs2_cand2.dat'] )
 > ~~~
 > {: .language-groovy}
 >
@@ -866,13 +874,15 @@ This can easily be maped to a process that will launch a job for each observatio
 > [obs1, obs1.dat, obs1_cand1.dat]
 > ~~~
 > {: .language-groovy}
-> > ## Soultion
+> 
+> Share your answer or ask questions via the [etherpad](https://pad.carpentries.org/ADACS_NextFlow).
+> > ## Solution
 > > ~~~
 > > // Use map to get an observation key
 > > data = data.map { it -> [ it.split("_")[0], it ] }
-> > candiates = candiates.map { it -> [ it.split("_")[0], it ] }
+> > candidates = candidates.map { it -> [ it.split("_")[0], it ] }
 > > // Cross the data
-> > data.cross(candiates)
+> > data.cross(candidates)
 > >     // Reformat to desired output
 > >     .map { it -> [ it[0][0], it[0][1], it[1][1] ] }.view()
 > > ~~~

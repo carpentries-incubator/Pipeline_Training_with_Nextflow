@@ -459,3 +459,21 @@ While it is out of the scope of this workshop to go into nf-core in detail, it i
 An end goal for many of your pipelines should be that they are easy to use, install and collaborate on.
 Nf-core is an excellent place for your pipelines and modules (individual processes) to end up as they enforce best practices
 which will help future astronomers spend less time creating pipelines and more time doing science.
+
+## VSCode integrations
+You can use an IDE such as [VSCode](https://code.visualstudio.com/) to edit your workflows.
+An advantage of using VSCode is that there are many extensions available on the marketlace including [one for NextFlow](https://marketplace.visualstudio.com/items?itemName=nextflow.nextflow):
+
+![NextFlow_VSCode_Extension]({{page.root}}{% link fig/NextFlowVSCodeExt.png%})
+
+Which will provide syntax highlighting for both your `.nf` and `.config` files like this:
+
+![NextFlow_Extension_Example]({{page.root}}{% link fig/vscode-nextflow.png %})
+
+Other useful extensions include:
+- Git Things
+  - [GitHub](https://marketplace.visualstudio.com/items?itemName=KnisterPeter.vscode-github): Makes branch/merge very easy.
+  - [GitHub Pull Requests](https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-pull-request-github): for managing pull requests within VSCode
+  - [GitBlame](https://marketplace.visualstudio.com/items?itemName=waderyan.gitblame): To see who last changed each line of a file
+  - [GitGraph](https://marketplace.visualstudio.com/items?itemName=mhutchie.git-graph): For a tramlines view of all your commits and branches
+- [Docker](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker): manage/run/create containers

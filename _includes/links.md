@@ -44,3 +44,4 @@
 [training]: https://carpentries.github.io/instructor-training/
 [workshop-repo]: {{ site.workshop_repo }}
 [yaml]: http://yaml.org/
+[etherpad]: https://pad.carpentries.org/ADACS_NextFlow
