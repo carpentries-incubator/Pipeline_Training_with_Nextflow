@@ -37,7 +37,7 @@ We have created some (mostly empty) example files for you to play with as you tr
 To download and untar the files in your current directory, use the following:
 
 ~~~
-wget https://github.com/ADACS-Australia/Nextflow_Training_2022B/raw/gh-pages-nick/data/example_files.tar -O - | tar -xv
+wget https://github.com/ADACS-Australia/Nextflow_Training_2022B/raw/gh-pages/data/example_files.tar -O - | tar -xv
 ~~~
 {: .language-bash}
 
