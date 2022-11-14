@@ -73,9 +73,10 @@ Day 1 (Users) 16th of Nov ([Teams Link](https://teams.microsoft.com/l/meetup-joi
 | AWST   | AEDT   | Lesson                   |
 | ------ | ------ | ------------------------ |
 | Before | Before | Pre-workshop survey      |
-| 09:00  | 12:00  | Workflows and Pipelines  |
-| 09:30  | 12:30  | Introduction to Nextflow |
-| 12:30  | 15:30  | Nextflow Workflows       |
+| 09:00  | 12:00  | Welcome and Intro        |
+|        |        | Workflows and Pipelines  |
+|        |        | Introduction to Nextflow |
+|        |        | Nextflow Workflows       |
 | 14:00  | 17:00  | Finish                   |
 
 Day 2 (Developers) 23rd of Nov ([Teams Link](https://teams.microsoft.com/l/meetup-join/19%3ameeting_ZGVlOGZmNWQtNzNlNC00Yzg2LThkYTYtMjVhMGEzYzdlYTk2%40thread.v2/0?context=%7b%22Tid%22%3a%225a740cd7-5768-4d09-ae13-f706b09fa22c%22%2c%22Oid%22%3a%22f7e680d8-6d7d-4b7a-bd02-65b77f85b930%22%7d))
@@ -83,10 +84,19 @@ Day 2 (Developers) 23rd of Nov ([Teams Link](https://teams.microsoft.com/l/meetu
 | AWST  | AEDT  | Lesson                  |
 | ----- | ----- | ----------------------- |
 | 09:00 | 12:00 | Nextflow Orchestration  |
-| 10:30 | 13:30 | Containers              |
-| 12:00 | 15:00 | Nextflow Best Practices |
-| 13:50 | 16:50 | Post-workshop Survey    |
+|       |       | Containers              |
+|       |       | Nextflow Best Practices |
+|       |       | Post-workshop Survey    |
 | 14:00 | 17:00 | END                     |
+
+On both days we'll be taking breaks according to this plan
+
+| AWST  | AEDST | Duration |
+| ----- | ----- | -------- |
+| 10:00 | 13:00 | 10m      |
+| 11:00 | 14:00 | 10m      |
+| 12:00 | 15:00 | 30m      |
+| 13:00 | 16:00 | 10m      |
 
 > ## Introduce yourselves
 > ![IceBreaker](https://ichef.bbci.co.uk/news/976/cpsprodpb/D6B5/production/_123956945_225107a3-318d-4c2e-b040-2dcd03c4698a.jpg){: width="400"}
