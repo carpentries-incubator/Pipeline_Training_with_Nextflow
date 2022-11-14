@@ -272,19 +272,170 @@ process {
 Where [beforeScript](https://www.nextflow.io/docs/latest/process.html#beforescript) runs before the process which makes it ideal for loading the required software.
 
 > ## Challenge part 1
-> Create a workflow in which the process `ML_things` is run using the container `tensorflow/tensorflow:latest`, and another process `python_things` is run using the container `python:3.8.5`.
-> Give these two processes a label, and then use the `process` scope in a `nextflow.config` file to set the containers for each to use.
+> Below is a workflow with a process `ML_things` which requires the container `tensorflow/tensorflow:latest`, and another process `python_things` which requires the container `python:3.8.5`.
 >
+> ~~~
+> process ML_things {
+>     output:
+>         stdout
+>
+>     """
+>     #!/usr/bin/env python
+>     import tensorflow as tf
+>     print("TensorFlow version:", tf.__version__)
+>     """
+> }
+>
+> process python_things {
+>     output:
+>         stdout
+>
+>     """
+>     #!/usr/bin/env python
+>     import os
+>     import sys
+>     print(os.path.realpath(sys.executable))
+>     """
+> }
+>
+> workflow {
+>     ML_things().view()
+>     python_things().view()
+> }
+> ~~~
+> {: .language-groovy}
+>
+> Give these two processes a label, and then use the `process` scope in a `nextflow.config` file to set the containers for each to use.
+> If you have succesfully enabled the containers you should see the output:
+>
+> ~~~
+> TensorFlow version: 2.10.0
+>
+> /usr/local/bin/python3.8
+> ~~~
+> {: .output}
 > > ## Solution
-> > TODO
+> > > ## label_challenge.nf
+> > >
+> > > ~~~
+> > > process ML_things {
+> > >     label 'tensorflow'
+> > >
+> > >     output:
+> > >         stdout
+> > >
+> > >     """
+> > >     #!/usr/bin/env python
+> > >     import tensorflow as tf
+> > >     print("TensorFlow version:", tf.__version__)
+> > >     """
+> > > }
+> > >
+> > > process python_things {
+> > >     label 'python'
+> > >
+> > >     output:
+> > >         stdout
+> > >
+> > >     """
+> > >     #!/usr/bin/env python
+> > >     import os
+> > >     import sys
+> > >     print(os.path.realpath(sys.executable))
+> > >     """
+> > > }
+> > >
+> > > workflow {
+> > >     ML_things().view()
+> > >     python_things().view()
+> > > }
+> > > ~~~
+> > > {: .language-groovy}
+> > {: .callout}
+> > > ## nextflow.config
+> > >
+> > > ~~~
+> > > docker.enabled = true
+> > >
+> > > process {
+> > >     withLabel: python {
+> > >         container = 'python:3.8.5'
+> > >     }
+> > >     withLabel: tensorflow {
+> > >         container = 'tensorflow/tensorflow:latest'
+> > >     }
+> > > }
+> > > ~~~
+> > > {: .language-groovy}
+> > {: .callout}
 > {: .solution}
 {: .challenge}
 
-> ## Challenge part 1
-> Modify your `nextflow.config` so that the processes that use the tensorflow containers run on an HPC queue called `gpuq` and those that use the python container run on a queue called `workq`.
+> ## Challenge part 2
+> Modify your `nextflow.config` so that the processes that use the tensorflow containers run on an HPC (SLURM)[https://www.nextflow.io/docs/latest/executor.html#slurm] queue called `gpuq` and those that use the python container run on a queue called `workq`.
+> This is how the job queues on Pawsey's Garrawarla cluster are set up so you will only be able to test your solution if you have access to that cluster.
 >
 > > ## Solution
-> > TODO
+> > The followig config is a simple solution
+> > > ## nextflow.config
+> > >
+> > > ~~~
+> > > docker.enabled = true
+> > >
+> > > process {
+> > >     withLabel: 'python|tensorflow' {
+> > >         cpus = 1
+> > >         executor = 'slurm'
+> > >         memory = '8 GB'
+> > >         time = '1h'
+> > >     }
+> > >     withLabel: python {
+> > >         container = 'python:3.8.5'
+> > >         queue = 'workq'
+> > >     }
+> > >     withLabel: tensorflow {
+> > >         container = 'tensorflow/tensorflow:latest'
+> > >         queue = 'gpuq'
+> > >     }
+> > > }
+> > > ~~~
+> > > {: .language-groovy}
+> > {: .callout}
+> > If you attempted to test this soultion on Garrawarla you would have noticed that this solution isn't sufficient.
+> > The following expanded solution demonstrates everything you will need:
+> > > ## nextflow.config
+> > >
+> > > ~~~
+> > > // HPC's such as Garrawarla require Singulraity
+> > > singularity {
+> > >     enabled = true
+> > >     // This whitelist will bind common paths so singulairty can see your directories
+> > >     envWhitelist = 'SINGULARITY_BINDPATH, SINGULARITYENV_LD_LIBRARY_PATH'
+> > > }
+> > >
+> > > process {
+> > >     withLabel: 'python|tensorflow' {
+> > >         cpus = 1
+> > >         executor = 'slurm'
+> > >         memory = '8 GB'
+> > >         time = '1h'
+> > >         // To use singularity on the SLURM queue you must get Nextflow to load it
+> > >         module = 'singularity/3.7.4'
+> > >     }
+> > >     withLabel: python {
+> > >         container = 'python:3.8.5'
+> > >         queue = 'workq'
+> > >     }
+> > >     withLabel: tensorflow {
+> > >         container = 'tensorflow/tensorflow:latest'
+> > >         queue = 'gpuq'
+> > >         // You must reserve a GPU
+> > >         clusterOptions = "--gres=gpu:1"
+> > >     }
+> > > }
+> > > ~~~
+> > > {: .language-groovy}
+> > {: .callout}
 > {: .solution}
 {: .challenge}
 
