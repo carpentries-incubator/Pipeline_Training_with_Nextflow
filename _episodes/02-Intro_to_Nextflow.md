@@ -32,6 +32,18 @@ You can write on or more lines of code and press `Ctrl+r` to run it and see the 
 The output does not clear the output or move you to the bottom of the output window.
 To avoid confusion, it is best to clear the output window (using `Ctrl+w`) before rerunning the console.
 
+# Example files
+We have created some (mostly empty) example files for you to play with as you try the channel manipulation.
+To download and untar the files in your current directory, use the following:
+
+~~~
+wget https://github.com/ADACS-Australia/Nextflow_Training_2022B/raw/gh-pages/data/example_files.tar -O - | tar -xv
+~~~
+{: .language-bash}
+
+If you run the commands from this episode in the same directory you download them to, you shouldn't see any "files do not exist" errors.
+The outputs of your commands will show the files in the directory you downloaded them to instead of `/data/some/dir/`.
+
 # Nextflow components
 Pipelines can be described using flowcharts.
 Nextflow takes advantage of this by only requiring you to describe the parts of the flow chart, and Nextflow will put the pipeline together for you.
@@ -68,7 +80,7 @@ value: 7
 You can create channels of files using `fromPath`:
 
 ```
-myFileChannel = Channel.fromPath( '/data/some/bigfile.txt' )
+myFileChannel = Channel.fromPath( 'example_1.txt' )
 myFileChannel.view()
 ```
 {: .language-groovy}
@@ -76,23 +88,23 @@ myFileChannel.view()
 which, as long as the file exists, will output:
 
 ```
-/data/some/bigfile.txt
+/data/some/dir/example_1.txt
 ```
 {: .output}
 
 You can also use wildcards to collect files:
 
 ```
-myFileChannel = Channel.fromPath( '/data/some/*.txt' ).view()
+myFileChannel = Channel.fromPath( '/data/some/dir/example*.txt' ).view()
 ```
 {: .language-groovy}
 
 which could output someting like:
 
 ```
-/data/some/example_1.txt
-/data/some/example_2.txt
-/data/some/example_3.txt
+/data/some/dir/example_1.txt
+/data/some/dir/example_2.txt
+/data/some/dir/example_3.txt
 ```
 {: .output}
 
@@ -227,10 +239,10 @@ One example could be some sort of observation identifier or date:
 params.observation_id = 'default1234'
 
 process make_files {
-   output:
-   file "*.txt"
+    output:
+    file "*.txt"
 
-   """for i in \$(seq 3); do touch ${params.observation_id}_\${i}_s_one.txt; done"""
+    """for i in \$(seq 3); do touch ${params.observation_id}_\${i}_s_one.txt; done"""
 }
 ```
 {: .language-groovy}
@@ -285,8 +297,8 @@ process echo_file {
 }
 
 workflow {
-   make_file()
-   echo_file(make_file.out).view()
+    make_file()
+    echo_file(make_file.out).view()
 }
 ```
 {: .language-groovy}
@@ -397,7 +409,7 @@ We'll describe this in more detail in the [next lesson]({{page.root}}{% link _ep
 >
 > Your challenge is to change the `echo_file` process so that it changes the message to lowercase (instead of uppercase).
 > Then to confirm that it works, change the input message to "THIS SHOULD BE LOWERCASE" using the command line.
-> 
+>
 > Remember to use the [etherpad](https://pad.carpentries.org/ADACS_NextFlow) to share your success or ask questions.
 > > ## Soultion
 > > This is the change to the `echo_file` process
@@ -441,36 +453,36 @@ Manipulating channels is the most difficult parts of Nextlflow but it allows us 
 
 So we have a channel of three files like so:
 ```
-Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).view()
+Channel.fromPath(['example_1.txt', 'example_2.txt', 'example_3.txt']).view()
 ```
 {: .language-groovy}
 ```
-/data/some/dir/file_1.txt
-/data/some/dir/file_2.txt
-/data/some/dir/file_3.txt
+/data/some/dir/example_1.txt
+/data/some/dir/example_2.txt
+/data/some/dir/example_3.txt
 ```
 {: .output}
 
 We have three rows with one file each. So if we input this to a process it would create three jobs.
 If we instead wanted to create a single job that has access to all three files we can use the [`collect`](https://www.nextflow.io/docs/latest/operator.html#collect) operator like so:
 ```
-Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).collect().view()
+Channel.fromPath(['example_1.txt', 'example_2.txt', 'example_3.txt']).collect().view()
 ```
 {: .language-groovy}
 ```
-[/data/some/dir/file_1.txt, /data/some/dir/file_2.txt, /data/some/dir/file_3.txt]
+[/data/some/dir/example1.txt, /data/some/dir/example2.txt, /data/some/dir/example3.txt]
 ```
 {: .output}
 So now we have a single row of files. Just for fun, we can even use [`flatten`](https://www.nextflow.io/docs/latest/operator.html#flatten) to "flatten" them back to one file per row:
 
 ```
-Channel.fromPath(['file_1.txt', 'file_2.txt', 'file_3.txt']).collect().flatten().view()
+Channel.fromPath(['example1.txt', 'example2.txt', 'example3.txt']).collect().flatten().view()
 ```
 {: .language-groovy}
 ```
-/data/some/dir/file_1.txt
-/data/some/dir/file_2.txt
-/data/some/dir/file_3.txt
+/data/some/dir/example1.txt
+/data/some/dir/example2.txt
+/data/some/dir/example3.txt
 ```
 {: .output}
 
@@ -636,16 +648,7 @@ Channel
 {: .output}
 
 This operator is often used to group files by their name.
-So if we make some test files like so:
-
-```
-for i in \$(seq 3 ); do
-    for j in \$(seq 3 ); do
-        touch file_\${i}_s_\${j}.txt
-    done
-done
-```
-{: .language-bash}
+We have created some [example files]({{ page.root }}{% link _episodes/02-Intro_to_Nextflow.md %}#example-files) for you in the format `file_{i}_s_{j}.txt`.
 
 We can use `map` to create a key based on the file name and then use `groupTuple` to group them together in any way you want.
 For example we can group them by the name before "_s_":
@@ -767,7 +770,7 @@ c
 > I have file_1_s_one.txt and file_1_s_two.txt
 > ~~~
 > {: .output}
-> 
+>
 > Use the [etherpad](https://pad.carpentries.org/ADACS_NextFlow) to let us know how you are going.
 > > ## Soultion
 > > ~~~
@@ -809,14 +812,7 @@ Channel
 {: .output}
 
 You can also hand csv files directly to `splitCsv` which makes handling these files easy.
-A test CSV can be created with:
-
-```
-echo alpha,beta,gamma > test.csv; echo 10,20,30 >> test.csv; echo 70,80,90 >> test.csv
-```
-{: .language-bash}
-
-Then you can use the following operators to parse the CSV file:
+We created an [example csv file]({{ page.root }}{% link _episodes/02-Intro_to_Nextflow.md %}#example-files) that you can use the following operators to parse the CSV file:
 
 ```
 Channel
@@ -861,8 +857,8 @@ This can easily be maped to a process that will launch a job for each observatio
 > Similar to the previous example, you have of your observation data files and the observation candidates:
 >
 > ~~~
-> data = Channel.from( ['obs1.dat', 'obs2.dat'] )
-> candidates = Channel.from( ['obs1_cand1.dat', 'obs1_cand2.dat', 'obs1_cand3.dat', 'obs2_cand1.dat', 'obs2_cand2.dat'] )
+> data = Channel.fromPath( ['obs1.dat', 'obs2.dat'] )
+> candidates = Channel.fromPath( ['obs1_cand1.dat', 'obs1_cand2.dat', 'obs1_cand3.dat', 'obs2_cand1.dat', 'obs2_cand2.dat'] )
 > ~~~
 > {: .language-groovy}
 >
@@ -871,18 +867,20 @@ This can easily be maped to a process that will launch a job for each observatio
 > ~~~
 > [obsname, obs_data, obs_cand]
 > eg:
-> [obs1, obs1.dat, obs1_cand1.dat]
+> [obs1, /data/some/dir/obs1.dat, /data/some/dir/obs1_cand1.dat]
 > ~~~
 > {: .language-groovy}
-> 
+>
+> Hint: use `.baseName` to remove the path and the file type from the path objects.
+>
 > Share your answer or ask questions via the [etherpad](https://pad.carpentries.org/ADACS_NextFlow).
 > > ## Solution
 > > ~~~
 > > // Use map to get an observation key
-> > data = data.map { it -> [ it.split("_")[0], it ] }
-> > candidates = candidates.map { it -> [ it.split("_")[0], it ] }
+> > data = data.map { it -> [ it.baseName, it ] }
+> > candiates = candiates.map { it -> [ it.baseName.split("_")[0], it ] }
 > > // Cross the data
-> > data.cross(candidates)
+> > data.cross(candiates)
 > >     // Reformat to desired output
 > >     .map { it -> [ it[0][0], it[0][1], it[1][1] ] }.view()
 > > ~~~
