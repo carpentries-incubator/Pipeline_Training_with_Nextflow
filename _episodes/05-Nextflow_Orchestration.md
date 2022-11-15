@@ -1,6 +1,6 @@
 ---
 title: "Nextflow Orchestration"
-teaching: 40
+teaching: 30
 exercises: 20
 questions:
 - How do I run pipelines on supercomputing clusters?
@@ -33,7 +33,7 @@ It does this because it uses the following ranked system to decided which config
 1. Parameters specified on the command line (`--something value`)
 2. Parameters provided using the `-params-file` option
 3. Config file specified using the `-c my_config` option
-4. The config file named `nextflow.`config` in the current directory
+4. The config file named `nextflow.config` in the current directory
 5. The config file named `nextflow.config` in the workflow project directory
 6. The config file `$HOME/.nextflow/config`
 7. Values defined within the pipeline script itself (e.g. `main.nf`)
@@ -48,20 +48,24 @@ Comments in the config file are the same as in Groovy or Java so you can use `//
 
 You can use declare values as you would in other scripts, but to use them outside of the config file you must use `params.`.
 For example, if I made a `nextflow.config` file with the following:
-```
-//Something that can be used outside of the config and changed on the command line
-params.test1 = 'nextflow.config'
-// Something that can't
-test2 = 'nextflow.config'
-```
-{: .language-groovy}
+> ## nextflow.config
+> ~~~
+> //Something that can be used outside of the config and changed on the command line
+> params.test1 = 'nextflow.config'
+> // Something that can't
+> test2 = 'nextflow.config'
+> ~~~
+> {: .language-groovy}
+{: .callout}
 
 Then tried to run a script `test_config.nf` which contained:
-```
-println("test1: " + params.test1)
-println("test2: " + test2)
-```
-{: .language-groovy}
+> ## test_config.nf
+> ~~~
+> println("test1: " + params.test1)
+> println("test2: " + test2)
+> ~~~
+> {: .language-groovy}
+{: .callout}
 
 Running it would output:
 ```
@@ -140,8 +144,8 @@ To do this add the following to your `nextflow.config`
 
 > ## `nextflow.config`
 > ~~~
-> process.container = 'python:3.3.5'
 > docker.enabled = true
+> process.container = 'python:3.3.5'
 > ~~~
 > {: .language-groovy}
 {: .callout}
@@ -175,8 +179,8 @@ module load apptainer/latest
 Using a singularity image is similar to Docker but you must point to the Singularity container file:
 > ## `nextflow.config`
 > ~~~
-> process.container = '/path/to/singularity.img'
 > singularity.enabled = true
+> process.container = '/path/to/singularity.img'
 > ~~~
 > {: .language-groovy}
 {: .callout}
@@ -262,7 +266,7 @@ process {
     withLabel: python {
         container = '/path/to/containter/python/3.7.img'
     }
-    withLabel: preto {
+    withLabel: presto {
         beforeScript "module load presto"
     }
 }
@@ -372,7 +376,7 @@ Where [beforeScript](https://www.nextflow.io/docs/latest/process.html#beforescri
 {: .challenge}
 
 > ## Challenge part 2
-> Modify your `nextflow.config` so that the processes that use the tensorflow containers run on an HPC (SLURM)[https://www.nextflow.io/docs/latest/executor.html#slurm] queue called `gpuq` and those that use the python container run on a queue called `workq`.
+> Modify your `nextflow.config` so that the processes that use the tensorflow containers run on an HPC [SLURM](https://www.nextflow.io/docs/latest/executor.html#slurm) queue called `gpuq` and those that use the python container run on a queue called `workq`.
 > This is how the job queues on Pawsey's Garrawarla cluster are set up so you will only be able to test your solution if you have access to that cluster.
 >
 > > ## Solution

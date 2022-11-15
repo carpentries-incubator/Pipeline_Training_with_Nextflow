@@ -1,7 +1,7 @@
 ---
 title: "Introduction to Nextflow"
-teaching: 80
-exercises: 40
+teaching: 40
+exercises: 20
 questions:
 - What is Nextflow?
 - What are the components of Nextflow?
@@ -256,8 +256,8 @@ This is where you will connect processes by their channels and and manipulate th
 
 ```
 workflow  {
-    a_process( channel.from('/data/some/bigfile.txt') )
-    another_process( a_process.out.collect() )
+    a_process( channel.from('/data/some//dir/example_1.txt') )
+    another_process( a_process.out )
 }
 ```
 {: .language-groovy}
@@ -520,7 +520,7 @@ workflow {
    make_files()
    // flatten channel to make the dimensions 3 rows x 1 column
    each_file(make_files.out.flatten())
-   // collect channgel to make the dimensions 1 row x 3 columns
+   // collect channel to make the dimensions 1 row x 3 columns
    all_files(make_files.out.collect())
    // The above collect is redundant so you will get the same result from:
    // all_files(make_files.out)
@@ -690,9 +690,9 @@ The `concat` operator concatenates items from two or more channels to a new chan
 
 For example:
 ```
-a = Channel.from('a','b','c')
-b = Channel.from(1,2,3)
-c = Channel.from('p','q')
+a = Channel.from( 'a', 'b', 'c' )
+b = Channel.from( 1, 2, 3 )
+c = Channel.from( 'p', 'q' )
 
 c.concat( b, a ).view()
 ```

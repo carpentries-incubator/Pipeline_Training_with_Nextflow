@@ -1,7 +1,7 @@
 ---
 title: "Nextflow Workflows"
-teaching: 80
-exercises: 40
+teaching: 30
+exercises: 0
 questions:
 - How do I run a Nextflow pipeline?
 - What is a teminal multiplexer?
@@ -25,15 +25,14 @@ nextflow run hello_world.nf
 ```
 {: .language-bash}
 
-You can also put your Nextflow pipelines on your PATH and treat them as you would other executables as long as they have the following shebang:
+You can also put your Nextflow pipelines on your PATH and treat them as you would other executables as long as they have executable permissions and the following shebang on the first line:
 ```
 #!/usr/bin/env nextflow
 
 ```
 {: .language-groovy}
 
-With that running your pipeline becomes as easy as
-es are launched from the command line like so:
+Then running your pipeline becomes as easier and can be launched from the command line like so:
 
 ```
 hello_world.nf
