@@ -1,7 +1,7 @@
 ---
 title: "Nextflow Best Practices"
-teaching: 80
-exercises: 40
+teaching: 40
+exercises: 0
 questions:
 - How can I make my pipeline run on any computer?
 - How can I make my pipeline easy to understand?
