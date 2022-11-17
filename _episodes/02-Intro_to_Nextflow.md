@@ -181,14 +181,16 @@ process shell_example {
         val some_val
 
     shell:
-    """
+    '''
     for bash_val in $(seq 3); do
         some_script --input !some_file --option !{some_val} --other ${bash_val} --user $USER
     done
-    """
+    '''
 }
 ```
 {: .language-groovy}
+
+Note that we also used triple single quotes to prevent any other bash string interpolation.
 
 
 By default, the process will be executed as a bash script, but you can easily add the languages shebang to the first line of the script.
