@@ -37,7 +37,7 @@ process combine_frequencies {
 
 
 process find_candidates {
-    // Combine the files so the output has a single pointing with all the frequency information
+    // Use a periodicity search to find events with significance above 6sigma
     input:
     tuple (val(point), file(obs))
 
@@ -59,7 +59,8 @@ process find_candidates {
 
 
 process fold_cands {
-    // Combine the files so the output has a single pointing with all the frequency information
+    // Fold the candidates on the given period and measure properties
+    // for example: SNR, DM, p, pdot, intensity
     input:
     tuple (val(point), file(obs), file(cand))
 
@@ -73,6 +74,8 @@ process fold_cands {
 }
 
 process ML_thing {
+    // apply a machine learning algorithm to take the folded data and predict
+    // real (positve) or fake (negative) candidates
     publishDir "cands/", mode: 'copy'
 
     input:
