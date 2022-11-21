@@ -911,3 +911,51 @@ This can easily be maped to a process that will launch a job for each observatio
 {: .challenge}
 
 
+## [transpose](https://www.nextflow.io/docs/latest/operator.html#transpose)
+The `transpose` operator transforms a channel in such a way that the emitted items are the result of a transposition of all tuple elements in each item.
+This can be useful when you have a process that outputs an unknown number of files (candidate files, for example) and you want each row to have a single file while preserving the other information.
+
+```
+Channel.of(
+    // [ id, frequency, list_of_candidate_files]
+    [ 1, 20, [ 'file1.dat', 'file2.dat' ] ],
+    [ 2, 20, [ 'file1.dat' ] ],
+    [ 3, 30, [ 'file1.dat', 'file2.dat', 'file3.dat' ] ]
+    )
+    .transpose()
+    .view()
+```
+{: .language-groovy}
+```
+[1, 20, file1.dat]
+[1, 20, file2.dat]
+[2, 20, file1.dat]
+[3, 30, file1.dat]
+[3, 30, file2.dat]
+[3, 30, file3.dat]
+```
+{: .output}
+
+This transposed channel format is much easier to hand to other processes or combine with other channels.
+
+## [collate](https://www.nextflow.io/docs/latest/operator.html#collate)
+The `collate` operator transforms a channel in such a way that the emitted values are grouped in tuples containing n items.
+For example:
+
+```
+Channel
+    .of( 'file1.dat', 'file2.dat', 'file3.dat', 'file4.dat', 'file5.dat', 'file6.dat', 'file7.dat' )
+    .collate( 3 )
+    .view()
+```
+{: .language-groovy}
+```
+[file1.dat, file2.dat, file3.dat]
+[file4.dat, file5.dat, file6.dat]
+[file7.dat]
+```
+{: .output}
+
+This is an excellent operator for controlling the size of jobs.
+When running your jobs on a supercomputing cluster, you do not want to run hundreds of short (less than 5 minutes) jobs as it is inefficient for the job scheduler.
+Instead, you want to group your jobs so that they are large enough to run for more than ~1 hour and not so large that you run out of resources (time or memory).
