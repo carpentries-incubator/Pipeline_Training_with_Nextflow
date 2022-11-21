@@ -181,14 +181,16 @@ process shell_example {
         val some_val
 
     shell:
-    """
+    '''
     for bash_val in $(seq 3); do
         some_script --input !some_file --option !{some_val} --other ${bash_val} --user $USER
     done
-    """
+    '''
 }
 ```
 {: .language-groovy}
+
+Note that we also used triple single quotes to prevent any other bash string interpolation.
 
 
 By default, the process will be executed as a bash script, but you can easily add the languages shebang to the first line of the script.
@@ -602,7 +604,7 @@ Channel
     .view()
 ```
 {: .language-groovy}
-where `it` describes each item as `map` iterates over the channel. This will output:
+where `it` (short for iterable) describes each item as `map` iterates over the channel. This will output:
 
 ```
 1
@@ -613,12 +615,22 @@ where `it` describes each item as `map` iterates over the channel. This will out
 ```
 {: .output}
 
+You can use the following `->` format if you would like to name the iterator as something different than the default `it`.
+
+```
+Channel
+    .from( 1, 2, 3, 4, 5 )
+    .map { this_row -> this_row * this_row }
+    .view()
+```
+{: .language-groovy}
+
 You can use `map` to manipulate multi column rows in different ways:
 
 ```
 Channel
     .from( [1,'A_B'], [2,'B_C'], [3,'C_D'])
-    .map { it -> [ it[0], it[0] * it[0], it[1].split("_")[0], it[1].split("_")[1] ] }
+    .map { [ it[0], it[0] * it[0], it[1].split("_")[0], it[1].split("_")[1] ] }
     .view()
 ```
 {: .language-groovy}
@@ -628,6 +640,16 @@ Channel
 [3, 9, C, D]
 ```
 {: .output}
+
+To make it a bit more readable you could use the `->` format.
+
+```
+Channel
+    .from( [1,'A_B'], [2,'B_C'], [3,'C_D'])
+    .map { key, character_string -> [ key, key * key, character_string.split("_")[0], character_string.split("_")[1] ] }
+    .view()
+```
+{: .language-groovy}
 
 ### [groupTuple](https://www.nextflow.io/docs/latest/operator.html#grouptuple)
 `groupTuple` is used to group channel items with the same key, which is the first item by default.
@@ -889,3 +911,51 @@ This can easily be maped to a process that will launch a job for each observatio
 {: .challenge}
 
 
+## [transpose](https://www.nextflow.io/docs/latest/operator.html#transpose)
+The `transpose` operator transforms a channel in such a way that the emitted items are the result of a transposition of all tuple elements in each item.
+This can be useful when you have a process that outputs an unknown number of files (candidate files, for example) and you want each row to have a single file while preserving the other information.
+
+```
+Channel.of(
+    // [ id, frequency, list_of_candidate_files]
+    [ 1, 20, [ 'file1.dat', 'file2.dat' ] ],
+    [ 2, 20, [ 'file1.dat' ] ],
+    [ 3, 30, [ 'file1.dat', 'file2.dat', 'file3.dat' ] ]
+    )
+    .transpose()
+    .view()
+```
+{: .language-groovy}
+```
+[1, 20, file1.dat]
+[1, 20, file2.dat]
+[2, 20, file1.dat]
+[3, 30, file1.dat]
+[3, 30, file2.dat]
+[3, 30, file3.dat]
+```
+{: .output}
+
+This transposed channel format is much easier to hand to other processes or combine with other channels.
+
+## [collate](https://www.nextflow.io/docs/latest/operator.html#collate)
+The `collate` operator transforms a channel in such a way that the emitted values are grouped in tuples containing n items.
+For example:
+
+```
+Channel
+    .of( 'file1.dat', 'file2.dat', 'file3.dat', 'file4.dat', 'file5.dat', 'file6.dat', 'file7.dat' )
+    .collate( 3 )
+    .view()
+```
+{: .language-groovy}
+```
+[file1.dat, file2.dat, file3.dat]
+[file4.dat, file5.dat, file6.dat]
+[file7.dat]
+```
+{: .output}
+
+This is an excellent operator for controlling the size of jobs.
+When running your jobs on a supercomputing cluster, you do not want to run hundreds of short (less than 5 minutes) jobs as it is inefficient for the job scheduler.
+Instead, you want to group your jobs so that they are large enough to run for more than ~1 hour and not so large that you run out of resources (time or memory).
