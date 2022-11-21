@@ -604,7 +604,7 @@ Channel
     .view()
 ```
 {: .language-groovy}
-where `it` describes each item as `map` iterates over the channel. This will output:
+where `it` (short for iterable) describes each item as `map` iterates over the channel. This will output:
 
 ```
 1
@@ -615,12 +615,22 @@ where `it` describes each item as `map` iterates over the channel. This will out
 ```
 {: .output}
 
+You can use the following `->` format if you would like to name the iterator as something different than the default `it`.
+
+```
+Channel
+    .from( 1, 2, 3, 4, 5 )
+    .map { this_row -> this_row * this_row }
+    .view()
+```
+{: .language-groovy}
+
 You can use `map` to manipulate multi column rows in different ways:
 
 ```
 Channel
     .from( [1,'A_B'], [2,'B_C'], [3,'C_D'])
-    .map { it -> [ it[0], it[0] * it[0], it[1].split("_")[0], it[1].split("_")[1] ] }
+    .map { [ it[0], it[0] * it[0], it[1].split("_")[0], it[1].split("_")[1] ] }
     .view()
 ```
 {: .language-groovy}
@@ -630,6 +640,16 @@ Channel
 [3, 9, C, D]
 ```
 {: .output}
+
+To make it a bit more readable you could use the `->` format.
+
+```
+Channel
+    .from( [1,'A_B'], [2,'B_C'], [3,'C_D'])
+    .map { key, character_string -> [ key, key * key, character_string.split("_")[0], character_string.split("_")[1] ] }
+    .view()
+```
+{: .language-groovy}
 
 ### [groupTuple](https://www.nextflow.io/docs/latest/operator.html#grouptuple)
 `groupTuple` is used to group channel items with the same key, which is the first item by default.
