@@ -638,6 +638,8 @@ cands
 ~~~
 {: .output}
 
+## Viewing workflow meta-data
+
 ### Create a .config file
 This will create a bunch of useful analysis for your pipeline run when it completes.
 See [next lesson]({{page.root}}{% link _episodes/05-Nextflow_Orchestration.md %}) for more about configuration files.
@@ -655,3 +657,15 @@ See [next lesson]({{page.root}}{% link _episodes/05-Nextflow_Orchestration.md %}
 > ~~~
 > {: .language-groovy}
 {: .callout}
+
+If we then rerun our workflow without the `-resume` option, we'll get the following files in our directory:
+- `timeline-<date>-<timestamp>`.html
+- `report-<date>-<timestamp>`.html
+- `trace-<date>-<timestamp>`.txt
+- `dag.png` (or `dag.dot` if you don't have graphviz installed)
+
+The first thing we can look at is the `dag.png` file which is a directed analytic graph of our workflow.
+![dag]({{page.root}}{% link fig/dag.png%})
+The graph isn't super fancy, but you can see the processes as ellipses, the channels as linking lines, some with names, and circles on the channels where we have done some channel manipulation.
+
+We can also review the [report]({{page.root}}{%link files/report-20221122-41615055.html %}) and [timeline]({{page.root}}{% link files/timeline-20221122-41615055.html %}).
