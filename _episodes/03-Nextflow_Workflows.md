@@ -440,7 +440,7 @@ process final_data {
     publishDir '/home/data/'
 
     output:
-    file 'science.data'
+    path 'science.data'
 
     '''
     echo "Some Science" > science.data
@@ -459,7 +459,7 @@ process final_data {
     publishDir '/home/data/', mode: 'copy'
 
     output:
-    file 'science.data'
+    path 'science.data'
 
     '''
     echo "Some Science" > science.data

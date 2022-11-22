@@ -141,7 +141,7 @@ In the scripts you can use the `$` notation do denote the input variables like y
 ```
 process script_example {
     input:
-        file some_file
+        path some_file
         val some_val
 
     script:
@@ -158,7 +158,7 @@ so it can still be used by bash. For example:
 ```
 process script_example {
     input:
-        file some_file
+        path some_file
         val some_val
 
     script:
@@ -177,7 +177,7 @@ which uses `!` to denote Nextflow values. So the above can instead be written as
 ```
 process shell_example {
     input:
-        file some_file
+        path some_file
         val some_val
 
     shell:
@@ -242,7 +242,7 @@ params.observation_id = 'default1234'
 
 process make_files {
     output:
-    file "*.txt"
+    path "*.txt"
 
     """for i in \$(seq 3); do touch ${params.observation_id}_\${i}_s_one.txt; done"""
 }
@@ -280,7 +280,7 @@ params.message = "hello world"
 
 process make_file {
     output:
-        file "message.txt"
+        path "message.txt"
 
     """
     echo "${params.message}" > message.txt
@@ -289,7 +289,7 @@ process make_file {
 
 process echo_file {
     input:
-        file message_file
+        path message_file
     output:
         stdout
 
@@ -384,7 +384,7 @@ We'll describe this in more detail in the [next lesson]({{page.root}}{% link _ep
 >
 > process make_file {
 >     output:
->         file "message.txt"
+>         path "message.txt"
 >
 >     """
 >     echo "${params.message}" > message.txt
@@ -393,7 +393,7 @@ We'll describe this in more detail in the [next lesson]({{page.root}}{% link _ep
 >
 > process echo_file {
 >     input:
->         file message_file
+>         path message_file
 >     output:
 >         stdout
 >
@@ -418,7 +418,7 @@ We'll describe this in more detail in the [next lesson]({{page.root}}{% link _ep
 > > ~~~
 > > process echo_file {
 > >     input:
-> >         file message_file
+> >         path message_file
 > >     output:
 > >         stdout
 > >
@@ -495,7 +495,7 @@ Let's see what this channel manipulation looks like in a full workflow:
 ```
 process make_files {
    output:
-   file "file*.txt"
+   path "file*.txt"
 
    """for i in \$(seq 3); do touch file_\${i}.txt; done"""
 }
@@ -504,7 +504,7 @@ process each_file {
    echo true
 
    input:
-   file each_file
+   path each_file
 
    """echo 'I have each file: ${each_file}'"""
 }
@@ -513,7 +513,7 @@ process all_files {
    echo true
 
    input:
-   file all_files
+   path all_files
 
    """echo 'I have all files: ${all_files}'"""
 }
@@ -738,14 +738,14 @@ c
 > ~~~
 > process make_files_one {
 >    output:
->    file "file*.txt"
+>    path "file*.txt"
 >
 >    """for i in \$(seq 3); do touch file_\${i}_s_one.txt; done"""
 > }
 >
 > process make_files_two {
 >    output:
->    file "file*.txt"
+>    path "file*.txt"
 >
 >    """for i in \$(seq 3); do touch file_\${i}_s_two.txt; done"""
 > }
@@ -755,7 +755,7 @@ c
 >    echo true
 >
 >    input:
->    tuple file(first_file), file(second_file)
+>    tuple path(first_file), path(second_file)
 >    """echo 'I have ${first_file} and ${second_file}'"""
 > }
 >
