@@ -79,7 +79,7 @@ process ML_thing {
     publishDir "cands/", mode: 'copy'
 
     input:
-        file candidates
+        tuple(val(point), file(candidates))
 
     output:
         path("positive/*"), optional: true
@@ -108,15 +108,16 @@ workflow {
     combine_frequencies( same_pointing )
     // Look for periodic signals with an fft
     find_candidates( combine_frequencies.out )
-    // tranpose will "flatten" the cands so they have the format [ key, cand_file ]
+    //find_candidates.out.view()
+    // transpose will "flatten" the cands so they have the format [ key, cand_file ]
     flattened_cands = find_candidates.out.transpose()
-    // For each candidate file pair it with observaton file
+    // For each candidate file pair it with observation file
     cand_obs_pairs = combine_frequencies.out.cross(flattened_cands)
         //reformat to remove redundant key
         .map{ [ it[0][0], it[0][1], it[1][1] ] }
-        // [ pointing, obs_file, candodate_file ]
+        // [ pointing, obs_file, candidate_file ]
     // Process the candidate
-    fold_cands( cand_obs_pairs ).view()
-    // Put the candidates through ML
-    ML_thing( fold_cands.out.map{it[1]} )
+    fold_cands( cand_obs_pairs )
+    // // Put the candidates through ML
+    ML_thing( fold_cands.out )
 }
