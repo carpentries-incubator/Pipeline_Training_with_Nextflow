@@ -28,7 +28,7 @@ For example the "fold data" task needs the multi-frequency data from the "compil
 
 ## The process
 
-### Step 1 initial channel
+### Step 1: Initial channel
 Our data is stored as a set of files in the `data/observations` directory with names like `obs_1.dat`.
 The meta-data for each file is stored in the file header.
 In our example we don't have any actual data in the files, just meta-data, and the files look like this:
@@ -52,7 +52,7 @@ all_obs = Channel.fromPath("${params.data_dir}/*.dat")
 ~~~
 {: .language-groovy}
 
-### Extracting meta-data
+### Step 2: Extracting meta-data
 The first step in our workflow is to extract the metadata from the files.
 For this we define a process called `get_meta`.
 Since this will be the first process in the workflow we set it up to accept input as single files, and it will return a tuple of the frequency and pointing direction for the given file, as well as the file itself.
@@ -126,7 +126,7 @@ Note that when the files are passed to `get_meta` they are symlinked to a new wo
 
 At this point we can see that the `get_meta` is working as intended so we can move on.
 
-### Compiling multi-frequency data
+### Step 3: Compiling multi-frequency data
 The next step in the workflow is to combine all the files that share the same pointing direction.
 This will result a multi-frequency data set per pointing direction.
 
@@ -248,6 +248,77 @@ cat obs_3.dat obs_2.dat obs_1.dat > obs_30_20_10.dat
 {: .language-bash}
 
 Here you can see that `${obs}` was expended to be `obs_3.dat obs_2.dat obs_1.dat`, and our tuple of frequencies `[30,20,10]` was replaced with `30_20_10` thanks to the `.join("_")` operator.
+
+### Step 4: Find candidates
+We now have a channel with items like: `[pointing, combined data file]`.
+This is in the format that we want for searching for candidates so we don't need to mutate the channel at all, and can go straight to making the new process.
+In our dummy script we are just making a random number of candidates using a bash script (the real processing is commented out).
+Since this script uses a lot of bash variables we can avoid escaping the `$` by creating a `shell` instead of a `script` section.
+
+Since the number of candidates that are found is random, and possibly zero, we indicate that the output is optional.
+This means that if the process runs and there are no files matching `cand*dat` then no items are emitted into the output channel but the process still completes without failure.
+
+~~~
+process find_candidates {
+    // Use a periodicity search to find events with significance above 6sigma
+    input:
+    tuple (val(point), file(obs))
+
+    output:
+    tuple (val(point), path("cand*dat"), optional: true)
+
+    shell:
+    '''
+    #./find_periodic_cands.sh !{obs}
+
+    # Random number from 0-3
+    ncand=$(( $RANDOM % 4 ))
+    echo $ncand
+    for i in $(seq ${ncand}); do
+        touch cand_${i}.dat
+    done
+    '''
+}
+~~~
+{: .language-groovy}
+
+Again we modify our workflow section so that we can see just the input/output for this process as we test and debug our workflow.
+
+~~~
+workflow {
+    // create metadata
+    get_meta( all_obs )
+    // collect all the files that have the same pointing
+    same_pointing = get_meta.out.groupTuple( by: 1 )
+    // Combine the frequencies so you have a single file with all frequencies
+    combine_frequencies( same_pointing )
+    // Look for periodic signals with an fft
+    combine_frequencies.out.view()
+    find_candidates( combine_frequencies.out )
+    find_candidates.out.view()
+}
+~~~
+{: .language-groovy}
+
+When I run I get the following output.
+Your output will differ because the number of candidates is random.
+Here you can see that I go zero candidates fro the 20deg_10_deg pointing, so there are just two items in my output channel.
+~~~
+$ nextflow run astro_wf.nf 
+N E X T F L O W  ~  version 22.10.1
+Launching `astro_wf.nf` [fervent_shockley] DSL2 - revision: 7a02379938
+executor >  local (15)
+[ac/dfbd2c] process > get_meta (2)            [100%] 9 of 9 ✔
+[62/9e9dec] process > combine_frequencies (2) [100%] 3 of 3 ✔
+[7e/d651a0] process > find_candidates (1)     [100%] 3 of 3 ✔
+[20deg_10deg, /work/e4/f2898b75b400ed0fda4af3a53ced16/obs_10_30_20.dat]
+[10deg_10deg, /work/9b/7b5d6f6c6e4c139c46bf23330756ff/obs_30_10_20.dat]
+[30deg_10deg, /work/62/9e9decdb609c0cefd36586412f25f9/obs_30_10_20.dat]
+[10deg_10deg, [/work/e3/3983bf3b27049a2fbd281786dab0ed/cand_1.dat, /work/e3/3983bf3b27049a2fbd281786dab0ed/cand_2.dat]]
+[30deg_10deg, [/work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_1.dat, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_2.dat, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_3.dat]]
+~~~
+{: .output}
+
 
 
 ### Create a .config file
