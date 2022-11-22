@@ -52,7 +52,7 @@ all_obs = Channel.fromPath("${params.data_dir}/*.dat")
 ~~~
 {: .language-groovy}
 
-## Extracting meta-data
+### Extracting meta-data
 The first step in our workflow is to extract the metadata from the files.
 For this we define a process called `get_meta`.
 Since this will be the first process in the workflow we set it up to accept input as single files, and it will return a tuple of the frequency and pointing direction for the given file, as well as the file itself.
@@ -126,7 +126,128 @@ Note that when the files are passed to `get_meta` they are symlinked to a new wo
 
 At this point we can see that the `get_meta` is working as intended so we can move on.
 
-## compiling multi-frequency data
+### Compiling multi-frequency data
+The next step in the workflow is to combine all the files that share the same pointing direction.
+This will result a multi-frequency data set per pointing direction.
+
+There are two things that we need to do here.
+The first is to take the output of the `get_meta` process and group it so that all the files that share a common pointing are now within a single tuple.
+The second  is to create a new process that will combine the data sets.
+
+The channel that comes from `get_meta` is shown above and you can see that it has one item per `[freq, pointing, filename]`, with some of the freq and pointing overlapping.
+What we want instead is `[[freq1, freq2, ...], pointing, [datafile1, datafile2, ...]]`, which means that instead of 9 items in the channel we have just three (corresponding to the three pointing directions).
+To achieve this goal we use the `groupTuple` method on the `get_meta.out` channel.
+By default `groupTuple` will use the first item in a tuple as the key, but we want it to use the pointing which is the second item (index=1).
+Therefore we modify our workflow to create the new channel called `same_pointing`, and remove the `.view()` on the `all_obs` channel.
+
+~~~
+workflow {
+    // create metadata
+    get_meta( all_obs )
+    // collect all the files that have the same pointing
+    get_meta.out.view()
+    same_pointing = get_meta.out.groupTuple( by: 1 ).view()
+}
+~~~
+{: .language-groovy}
+
+We now re-run the workflow to make sure that we are getting the required channel 'shape'.
+
+~~~
+$ nextflow run astro_wf.nf 
+N E X T F L O W  ~  version 22.10.1
+Launching `astro_wf.nf` [fabulous_woese] DSL2 - revision: d4bc8976c3
+executor >  local (9)
+[8f/01c418] process > get_meta (9) [100%] 9 of 9 ✔
+[30, 20deg_10deg, work/59/7cd29865c2ef0d56cd3ca8a3b824f6/obs_6.dat]
+executor >  local (9)
+[8f/01c418] process > get_meta (9) [100%] 9 of 9 ✔
+[30, 20deg_10deg, work/59/7cd29865c2ef0d56cd3ca8a3b824f6/obs_6.dat]
+[20, 10deg_10deg, work/cb/b4d7c2370b9fa1babba1dc4f2f1334/obs_2.dat]
+[10, 30deg_10deg, work/03/a53409f45b318ba49990b8a33dc29c/obs_7.dat]
+[30, 10deg_10deg, work/fe/039db662fe5bd31024c745412791d3/obs_3.dat]
+[20, 30deg_10deg, work/26/760d76cf79bf2b970cfaf8d67ea797/obs_8.dat]
+[10, 10deg_10deg, work/0d/76acb6d5e7b507af1ab4fe018f500f/obs_1.dat]
+[30, 30deg_10deg, work/ee/596bb5bad24c60ab84c7efc74b1bd0/obs_9.dat]
+[10, 20deg_10deg, work/42/cc5d006b6a514928ee17333de95e02/obs_4.dat]
+[20, 20deg_10deg, work/8f/01c4180f254a1900dfe5135ccfbc50/obs_5.dat]
+[[30, 10, 20], 20deg_10deg, [work/59/7cd29865c2ef0d56cd3ca8a3b824f6/obs_6.dat, work/42/cc5d006b6a514928ee17333de95e02/obs_4.dat, work/8f/01c4180f254a1900dfe5135ccfbc50/obs_5.dat]]
+[[20, 30, 10], 10deg_10deg, [work/cb/b4d7c2370b9fa1babba1dc4f2f1334/obs_2.dat, work/fe/039db662fe5bd31024c745412791d3/obs_3.dat, work/0d/76acb6d5e7b507af1ab4fe018f500f/obs_1.dat]]
+[[10, 20, 30], 30deg_10deg, [work/03/a53409f45b318ba49990b8a33dc29c/obs_7.dat, work/26/760d76cf79bf2b970cfaf8d67ea797/obs_8.dat, work/ee/596bb5bad24c60ab84c7efc74b1bd0/obs_9.dat]]
+~~~
+{: .output}
+
+The order in which the files are being grouped is different for each pointing direction.
+Note, however that the mapping between the frequency and filenames are still correct (eg. obs_1.dat is paired with 10 in pointing 10deg_10deg).
+
+Now that the channel is working we can set up a process to join the data for each pointing direction.
+We set the input to be a tuple with the same shape as the input channel, however we have the option of keeping the freq and file variables as a list of undetermined length, rather than trying to force them to be of length three.
+The result is that the the variable `freqs` will be a list of values, and `obs` will be a list of file objects.
+Our dummy script is just going to concatenate all the observations into a single file with a name that is like `obs_f1_f2_f3.dat`.
+Of course in reality you'll have some better way of doing this.
+Finally, our output is going to be the pointing direction and the file that was just generated.
+
+~~~
+process combine_frequencies {
+    // Combine the files so the output has a single pointing with all the frequency information
+    input:
+    tuple (val(freqs), val(point), file(obs))
+
+    output:
+    tuple (val(point), file("obs*dat"))
+
+    script:
+    """
+    cat ${obs} > obs_${freqs.join("_")}.dat
+    """
+}
+~~~
+{: .language-groovy}
+
+Note that `${obs}` and `${freqs}` are both lists so we have access to the `.join()` function.
+
+Let's now update our workflow file to include the above, and modify the workflow section to show what is going into and coming out of the `combine_frequencies` process.
+
+~~~
+workflow {
+    // create metadata
+    get_meta( all_obs )
+    // collect all the files that have the same pointing
+    same_pointing = get_meta.out.groupTuple( by: 1 ).view()
+    // Combine the frequencies so you have a single file with all frequencies
+    combine_frequencies( same_pointing )
+    combine_frequencies.out.view()
+}
+~~~
+{: .language-groovy}
+
+Our output is now:
+~~~
+$ nextflow run astro_wf.nf 
+N E X T F L O W  ~  version 22.10.1
+Launching `astro_wf.nf` [romantic_rosalind] DSL2 - revision: cdeceec8f1
+executor >  local (12)
+[c4/19d3d3] process > get_meta (9)            [100%] 9 of 9 ✔
+[17/f20f77] process > combine_frequencies (1) [100%] 3 of 3 ✔
+[[30, 20, 10], 10deg_10deg, [/work/4b/89cc7d4a29c63036def3945a00dfdc/obs_3.dat, /work/f5/2c181e756aacb93620edf61db87781/obs_2.dat, /work/d7/8e86a29a4046159431e7021883ebb8/obs_1.dat]]
+[[30, 20, 10], 30deg_10deg, [/work/d7/2ff98b2b97bf9535dbdc47bd90a9a9/obs_9.dat, /work/07/f118faf09efc8738034a4a944392a6/obs_8.dat, /work/77/d9299b3367c8ccbbf47e425abc6133/obs_7.dat]]
+[[30, 10, 20], 20deg_10deg, [/work/42/3d0cd8f5f1a3fc9a088f4eade1fcb2/obs_6.dat, /work/4e/02d9f520d266ea5cb5160db6297105/obs_4.dat, /work/c4/19d3d3528fe39a03d0e673969d7239/obs_5.dat]]
+[30deg_10deg, /work/52/6bded1ba8fabfaedb5fc1d8bab1ab5/obs_30_20_10.dat]
+[20deg_10deg, /work/ac/525ce379788357bd0d996e4cecc444/obs_30_10_20.dat]
+[10deg_10deg, /work/17/f20f775aa7866c31077070f1a8715e/obs_30_20_10.dat]
+~~~
+{: .output}
+
+Let's have a look at how NextFlow is doing the variable replacement for lists in the `combine_frequencies` process.
+To do this we open the working directory for the 10deg_10deg pointing (`/work/17/f20f775aa7866c31077070f1a8715e/`) and look at the `.command.sh` file.
+
+~~~
+#!/bin/bash -ue
+cat obs_3.dat obs_2.dat obs_1.dat > obs_30_20_10.dat
+~~~
+{: .language-bash}
+
+Here you can see that `${obs}` was expended to be `obs_3.dat obs_2.dat obs_1.dat`, and our tuple of frequencies `[30,20,10]` was replaced with `30_20_10` thanks to the `.join("_")` operator.
 
 
 ### Create a .config file
