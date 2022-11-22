@@ -31,7 +31,8 @@ For example the "fold data" task needs the multi-frequency data from the "compil
 ## The process
 
 ### Step 1: Initial channel
-Our data is stored as a set of files in the `data/observations` directory with names like `obs_1.dat`.
+Within the [example files]({{ page.root }}{% link _episodes/02-Intro_to_Nextflow.md %}#example-files),
+is a set of files in the `observations` directory with names like `obs_[1-9].dat`.
 The meta-data for each file is stored in the file header.
 In our example we don't have any actual data in the files, just meta-data, and the files look like this:
 
@@ -44,7 +45,7 @@ In our example we don't have any actual data in the files, just meta-data, and t
 > {: .language-bash}
 {: .callout}
 
-Our initial channel will be a list of all the files in the `data/observations` directory that look like `obs_*.dat`.
+Our initial channel will be a list of all the files in the `observations` directory that look like `obs_*.dat`.
 We will leave the data directory as a user parameter with a default value of `observations`.
 We create our channel as follows:
 ~~~
@@ -102,24 +103,24 @@ N E X T F L O W  ~  version 22.10.1
 Launching `astro_wf.nf` [zen_einstein] DSL2 - revision: 5338dcdf52
 executor >  local (9)
 [17/bcae92] process > get_meta (9) [100%] 9 of 9 ✔
-data/observations/obs_4.dat
-data/observations/obs_2.dat
-data/observations/obs_9.dat
-data/observations/obs_3.dat
-data/observations/obs_7.dat
-data/observations/obs_8.dat
-data/observations/obs_1.dat
-data/observations/obs_6.dat
-data/observations/obs_5.dat
-[30, 20deg_10deg, data/work/3d/e3663a45357b9818a547c2908701da/obs_6.dat]
-[10, 20deg_10deg, data/work/24/69ad9546cacb3ff01b6199977ab80d/obs_4.dat]
-[30, 30deg_10deg, data/work/e5/44d3d5698dc36454861601e4665a32/obs_9.dat]
-[20, 30deg_10deg, data/work/bd/e29f1747bd01c8cc8f2278f29f1b17/obs_8.dat]
-[20, 10deg_10deg, data/work/33/a37ad4d85131c77467126e0d361667/obs_2.dat]
-[30, 10deg_10deg, data/work/0f/22afa02fd765ca828341a6aa91630d/obs_3.dat]
-[10, 10deg_10deg, data/work/f4/c5618dd7b5aa66b23c3ce4c1ddc1d3/obs_1.dat]
-[10, 30deg_10deg, data/work/19/8411e3effcb8eb6b13d1ae450b3256/obs_7.dat]
-[20, 20deg_10deg, data/work/17/bcae92db0ed291c969217d979374a8/obs_5.dat]
+/data/some/dir/observations/obs_4.dat
+/data/some/dir/observations/obs_2.dat
+/data/some/dir/observations/obs_9.dat
+/data/some/dir/observations/obs_3.dat
+/data/some/dir/observations/obs_7.dat
+/data/some/dir/observations/obs_8.dat
+/data/some/dir/observations/obs_1.dat
+/data/some/dir/observations/obs_6.dat
+/data/some/dir/observations/obs_5.dat
+[30, 20deg_10deg, /data/some/dir/work/3d/e3663a45357b9818a547c2908701da/obs_6.dat]
+[10, 20deg_10deg, /data/some/dir/work/24/69ad9546cacb3ff01b6199977ab80d/obs_4.dat]
+[30, 30deg_10deg, /data/some/dir/work/e5/44d3d5698dc36454861601e4665a32/obs_9.dat]
+[20, 30deg_10deg, /data/some/dir/work/bd/e29f1747bd01c8cc8f2278f29f1b17/obs_8.dat]
+[20, 10deg_10deg, /data/some/dir/work/33/a37ad4d85131c77467126e0d361667/obs_2.dat]
+[30, 10deg_10deg, /data/some/dir/work/0f/22afa02fd765ca828341a6aa91630d/obs_3.dat]
+[10, 10deg_10deg, /data/some/dir/work/f4/c5618dd7b5aa66b23c3ce4c1ddc1d3/obs_1.dat]
+[10, 30deg_10deg, /data/some/dir/work/19/8411e3effcb8eb6b13d1ae450b3256/obs_7.dat]
+[20, 20deg_10deg, /data/some/dir/work/17/bcae92db0ed291c969217d979374a8/obs_5.dat]
 ~~~
 {: .output}
 
@@ -130,7 +131,7 @@ At this point we can see that the `get_meta` is working as intended so we can mo
 
 ### Step 3: Compiling multi-frequency data
 The next step in the workflow is to combine all the files that share the same pointing direction.
-This will result a multi-frequency data set per pointing direction.
+This will result a multi-frequency data set/file per pointing direction.
 
 There are two things that we need to do here.
 The first is to take the output of the `get_meta` process and group it so that all the files that share a common pointing are now within a single tuple.
@@ -183,8 +184,11 @@ The order in which the files are being grouped is different for each pointing di
 Note, however that the mapping between the frequency and filenames are still correct (eg. obs_1.dat is paired with 10 in pointing 10deg_10deg).
 
 Now that the channel is working we can set up a process to join the data for each pointing direction.
-We set the input to be a tuple with the same shape as the input channel, however we have the option of keeping the freq and file variables as a list of undetermined length, rather than trying to force them to be of length three.
-The result is that the the variable `freqs` will be a list of values, and `obs` will be a list of file objects.
+We set the input to be a tuple with the same shape as the input channel.
+All process inputs can be a single value/file or a list of values/files.
+This flexibility means that this process would still work if we input more than three files to this process.
+In this example, the variable `freqs` will be a list of values, and `obs` will be a list of file objects.
+
 Our dummy script is just going to concatenate all the observations into a single file with a name that is like `obs_f1_f2_f3.dat`.
 Of course in reality you'll have some better way of doing this.
 Finally, our output is going to be the pointing direction and the file that was just generated.
@@ -208,7 +212,7 @@ process combine_frequencies {
 
 Note that `${obs}` and `${freqs}` are both lists so we have access to the `.join()` function.
 
-Let's now update our workflow file to include the above, and modify the workflow section to show what is going into and coming out of the `combine_frequencies` process.
+Let's now update our workflow description to include the above, and modify the workflow section to show what is going into and coming out of the `combine_frequencies` process.
 
 ~~~
 workflow {
@@ -255,9 +259,9 @@ Here you can see that `${obs}` was expended to be `obs_3.dat obs_2.dat obs_1.dat
 We now have a channel with items like: `[pointing, combined data file]`.
 This is in the format that we want for searching for candidates so we don't need to mutate the channel at all, and can go straight to making the new process.
 In our dummy script we are just making a random number of candidates using a bash script (the real processing is commented out).
-Since this script uses a lot of bash variables we can avoid escaping the `$` by creating a `shell` instead of a `script` section.
+Since this script uses a lot of bash variables we can avoid escaping the `$` by creating a `shell` instead of a `script` section (remember to use `'''` not `"""`).
 
-Since the number of candidates that are found is random, and possibly zero, we indicate that the output is optional.
+Since the number of candidates that are found is random, and possibly zero, we indicate that the output is optional (remember to use `path` as `file` does not have this option).
 This means that if the process runs and there are no files matching `cand*dat` then no items are emitted into the output channel but the process still completes without failure.
 
 ~~~
@@ -304,7 +308,7 @@ workflow {
 
 When I run I get the following output.
 Your output will differ because the number of candidates is random.
-Here you can see that I go zero candidates fro the 20deg_10_deg pointing, so there are just two items in my output channel.
+Here you can see that I got zero candidates for the 20deg_10_deg pointing, so there are just two items in my output channel.
 ~~~
 $ nextflow run astro_wf.nf
 N E X T F L O W  ~  version 22.10.1
@@ -323,12 +327,12 @@ executor >  local (15)
 
 
 ### Step 5: Measure candidate properties
-This next process that we will create requires that we combine two input channels.
+This next process requires that we combine two input channels.
 We need the multi frequency data files which are provided by the `combine_frequencies` process, as well as the corresponding pulsar candidates provided by the `find_candidates` process.
 
 Recall the format for these two channels:
 - `combine_frequencies.out` looks like `[pointing, mf_file]`
-- `find_candidates.out` looks like `[pointing, candidate_file1, ...]`
+- `find_candidates.out` looks like `[pointing, [candidate_file1, ...] ]`
 
 We want our new process to work on a single candidate at a time so that if there are two candidates for a single input file, we'll run the process two times.
 Thus we want the input channel to look like `[pointing, mf_file, candidate_file]`.
@@ -426,8 +430,8 @@ Launching `astro_wf.nf` [festering_minsky] DSL2 - revision: 213dbb16a9
 {: .output}
 
 This is *almost* what we want.
-Note that we have a duplicated key (pointin) in the output from the `cross` operator.
-We could make a compilcated input for our new process, but it's better to just manipulate the channel to remove the key and flatten the tuple.
+Note that we have a duplicated key (pointing) in the output from the `cross` operator.
+We could make a compilcated input for our new process, but it's better to just manipulate the channel to remove the key and simplify the tuple.
 
 The relevant part of our workflow is now:
 ~~~
