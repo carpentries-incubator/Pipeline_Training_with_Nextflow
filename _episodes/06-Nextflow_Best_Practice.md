@@ -278,8 +278,8 @@ Use them to:
 workflow comment_example {
 
     take:
-    reads        // queue channel; [ sample_id, [ file(read1), file(read2) ] ]
-    reference    // file( "path/to/reference" )
+    reads        // queue channel; [ sample_id, [ path(read1), path(read2) ] ]
+    reference    // path( "path/to/reference" )
 
     main:
     // Quality Check input reads
@@ -302,7 +302,7 @@ workflow comment_example {
     reads_ch.view()
 
     emit:
-    bam = reads_ch   // queue channel: [ sample_id, file(bam_file) ]
+    bam = reads_ch   // queue channel: [ sample_id, path(bam_file) ]
 
 }
 
