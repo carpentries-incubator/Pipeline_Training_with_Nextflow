@@ -5,9 +5,11 @@ exercises: 30
 questions:
 - How do I develop a workflow from scratch?
 objectives:
-- Create a workflow from scratch and see ut run.
+- Create a workflow from scratch and see it run.
 keypoints:
-- 
+- get your channels right before working on the process
+- use `-resume` while developing to reduce execution time
+- report and timeline can be used to tune the execution once your workflow actually works
 ---
 
 
