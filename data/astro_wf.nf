@@ -8,10 +8,10 @@ process get_meta {
     // Convert an input file into a stream with meta data
     // output will be [frequency, point, file]
     input:
-    file(obs)
+    path(obs)
 
     output:
-    tuple (env(FREQ), env(POINT), file(obs))
+    tuple (env(FREQ), env(POINT), path(obs))
 
     script:
     """
@@ -24,10 +24,10 @@ process get_meta {
 process combine_frequencies {
     // Combine the files so the output has a single pointing with all the frequency information
     input:
-    tuple (val(freqs), val(point), file(obs))
+    tuple (val(freqs), val(point), path(obs))
 
     output:
-    tuple (val(point), file("obs*dat"))
+    tuple (val(point), path("obs*dat"))
 
     script:
     """
@@ -39,7 +39,7 @@ process combine_frequencies {
 process find_candidates {
     // Use a periodicity search to find events with significance above 6sigma
     input:
-    tuple (val(point), file(obs))
+    tuple (val(point), path(obs))
 
     output:
     tuple (val(point), path("cand*dat"), optional: true)
@@ -62,10 +62,10 @@ process fold_cands {
     // Fold the candidates on the given period and measure properties
     // for example: SNR, DM, p, pdot, intensity
     input:
-    tuple (val(point), file(obs), file(cand))
+    tuple (val(point), path(obs), path(cand))
 
     output:
-    tuple (val(point), file("*dat"))
+    tuple (val(point), path("*dat"))
 
     script:
     """
@@ -79,7 +79,7 @@ process ML_thing {
     publishDir "cands/", mode: 'copy'
 
     input:
-        tuple(val(point), file(candidates))
+        tuple(val(point), path(candidates))
 
     output:
         path("positive/*"), optional: true
@@ -108,7 +108,6 @@ workflow {
     combine_frequencies( same_pointing )
     // Look for periodic signals with an fft
     find_candidates( combine_frequencies.out )
-    //find_candidates.out.view()
     // transpose will "flatten" the cands so they have the format [ key, cand_file ]
     flattened_cands = find_candidates.out.transpose()
     // For each candidate file pair it with observation file
@@ -118,6 +117,6 @@ workflow {
         // [ pointing, obs_file, candidate_file ]
     // Process the candidate
     fold_cands( cand_obs_pairs )
-    // // Put the candidates through ML
+    // Put the candidates through ML
     ML_thing( fold_cands.out )
 }

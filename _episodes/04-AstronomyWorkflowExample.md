@@ -64,10 +64,10 @@ process get_meta {
     // Convert an input file into a stream with meta data
     // output will be [frequency, point, file]
     input:
-    file(obs)
+    path(obs)
 
     output:
-    tuple (env(FREQ), env(POINT), file(obs))
+    tuple (env(FREQ), env(POINT), path(obs))
 
     script:
     """
@@ -193,10 +193,10 @@ Finally, our output is going to be the pointing direction and the file that was 
 process combine_frequencies {
     // Combine the files so the output has a single pointing with all the frequency information
     input:
-    tuple (val(freqs), val(point), file(obs))
+    tuple (val(freqs), val(point), path(obs))
 
     output:
-    tuple (val(point), file("obs*dat"))
+    tuple (val(point), path("obs*dat"))
 
     script:
     """
@@ -264,7 +264,7 @@ This means that if the process runs and there are no files matching `cand*dat` t
 process find_candidates {
     // Use a periodicity search to find events with significance above 6sigma
     input:
-    tuple (val(point), file(obs))
+    tuple (val(point), path(obs))
 
     output:
     tuple (val(point), path("cand*dat"), optional: true)
@@ -478,10 +478,10 @@ process fold_cands {
     // Fold the candidates on the given period and measure properties
     // for example: SNR, DM, p, pdot, intensity
     input:
-    tuple (val(point), file(obs), file(cand))
+    tuple (val(point), path(obs), path(cand))
 
     output:
-    tuple (val(point), file("*dat"))
+    tuple (val(point), path("*dat"))
 
     script:
     """
@@ -549,7 +549,7 @@ process ML_thing {
     publishDir "cands/", mode: 'copy'
 
     input:
-        tuple(val(point), file(candidates))
+        tuple(val(point), path(candidates))
 
     output:
         path("positive/*"), optional: true
