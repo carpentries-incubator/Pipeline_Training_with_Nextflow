@@ -37,7 +37,7 @@ process combine_frequencies {
 
 
 process find_candidates {
-    // Combine the files so the output has a single pointing with all the frequency information
+    // Use a periodicity search to find events with significance above 6sigma
     input:
     tuple (val(point), file(obs))
 
@@ -59,7 +59,8 @@ process find_candidates {
 
 
 process fold_cands {
-    // Combine the files so the output has a single pointing with all the frequency information
+    // Fold the candidates on the given period and measure properties
+    // for example: SNR, DM, p, pdot, intensity
     input:
     tuple (val(point), file(obs), file(cand))
 
@@ -73,10 +74,12 @@ process fold_cands {
 }
 
 process ML_thing {
+    // apply a machine learning algorithm to take the folded data and predict
+    // real (positve) or fake (negative) candidates
     publishDir "cands/", mode: 'copy'
 
     input:
-        file candidates
+        tuple(val(point), file(candidates))
 
     output:
         path("positive/*"), optional: true
@@ -105,15 +108,16 @@ workflow {
     combine_frequencies( same_pointing )
     // Look for periodic signals with an fft
     find_candidates( combine_frequencies.out )
-    // tranpose will "flatten" the cands so they have the format [ key, cand_file ]
+    //find_candidates.out.view()
+    // transpose will "flatten" the cands so they have the format [ key, cand_file ]
     flattened_cands = find_candidates.out.transpose()
-    // For each candidate file pair it with observaton file
+    // For each candidate file pair it with observation file
     cand_obs_pairs = combine_frequencies.out.cross(flattened_cands)
         //reformat to remove redundant key
         .map{ [ it[0][0], it[0][1], it[1][1] ] }
-        // [ pointing, obs_file, candodate_file ]
+        // [ pointing, obs_file, candidate_file ]
     // Process the candidate
-    fold_cands( cand_obs_pairs ).view()
-    // Put the candidates through ML
-    ML_thing( fold_cands.out.map{it[1]} )
+    fold_cands( cand_obs_pairs )
+    // // Put the candidates through ML
+    ML_thing( fold_cands.out )
 }
