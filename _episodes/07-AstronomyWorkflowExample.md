@@ -320,6 +320,219 @@ executor >  local (15)
 {: .output}
 
 
+### Step 5: Measure candidate properties
+This next process that we will create requires that we combine two input channels.
+We need the multi frequency data files which are provided by the `combine_frequencies` process, as well as the corresponding pulsar candidates provided by the `find_candidates` process.
+
+Recall the format for these two channels:
+- `combine_frequencies.out` looks like `[pointing, mf_file]`
+- `find_candidates.out` looks like `[pointing, candidate_file1, ...]`
+
+We want our new process to work on a single candidate at a time so that if there are two candidates for a single input file, we'll run the process two times.
+Thus we want the input channel to look like `[pointing, mf_file, candidate_file]`.
+We could just use `cross` to join the two channels together using `pointing` as the key, however it will give only one item per pointing, rather than one item per candidate.
+Therefore we need to modify the `find_candidates.out` channel so that it has a single `[pointing, candidate_file]` pair per candidate.
+The NextFlow operator for this is `transpose` and we use it like this:
+
+~~~
+workflow {
+    // create metadata
+    get_meta( all_obs )
+    // collect all the files that have the same pointing
+    same_pointing = get_meta.out.groupTuple( by: 1 )
+    // Combine the frequencies so you have a single file with all frequencies
+    combine_frequencies( same_pointing )
+    // Look for periodic signals with an fft
+    find_candidates( combine_frequencies.out )
+    find_candidates.out.view()
+    // tranpose will "flatten" the cands so they have the format [ key, cand_file ]
+    flattened_cands = find_candidates.out.transpose()
+    flattened_cands.view()
+}
+~~~
+{: .language-groovy}
+
+This time I run the workflow using the `-resume` option so that I pick up from my previous run, and will get the same candidates as before.
+~~~
+$ nextflow run astro_wf.nf -resume
+N E X T F L O W  ~  version 22.10.1
+Launching `astro_wf.nf` [backstabbing_murdock] DSL2 - revision: fc5d3ca357
+[4e/b890fe] process > get_meta (9)            [100%] 9 of 9, cached: 9 ✔
+[9b/7b5d6f] process > combine_frequencies (3) [100%] 3 of 3, cached: 3 ✔
+[e3/3983bf] process > find_candidates (3)     [100%] 3 of 3, cached: 3 ✔
+[30deg_10deg, [/work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_1.dat, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_2.dat, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_3.dat]]
+[10deg_10deg, [/work/e3/3983bf3b27049a2fbd281786dab0ed/cand_1.dat, /work/e3/3983bf3b27049a2fbd281786dab0ed/cand_2.dat]]
+[30deg_10deg, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_1.dat]
+[30deg_10deg, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_2.dat]
+[30deg_10deg, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_3.dat]
+[10deg_10deg, /work/e3/3983bf3b27049a2fbd281786dab0ed/cand_1.dat]
+[10deg_10deg, /work/e3/3983bf3b27049a2fbd281786dab0ed/cand_2.dat]
+~~~
+{: .output}
+
+Now we are in a position to join the two channels together with `cross` using the pointing as the key:
+
+~~~
+workflow {
+    // create metadata
+    get_meta( all_obs )
+    // collect all the files that have the same pointing
+    same_pointing = get_meta.out.groupTuple( by: 1 )
+    // Combine the frequencies so you have a single file with all frequencies
+    combine_frequencies( same_pointing )
+    // Look for periodic signals with an fft
+    find_candidates( combine_frequencies.out )
+    // transpose will "flatten" the cands so they have the format [ key, cand_file ]
+    flattened_cands = find_candidates.out.transpose()
+    flattened_cands.view()
+    combine_frequencies.out.view()
+    // For each candidate file pair it with observation file
+    cand_obs_pairs = combine_frequencies.out.cross(flattened_cands)
+    cand_obs_pairs.view()
+}
+~~~
+{: .language-groovy}
+
+The output can get mixed up since the processes don't execute in serial, so below I have reordered the outputs and added some comments (`##`) to show the different channels.
+
+~~~
+$ nextflow run astro_wf.nf -resume
+N E X T F L O W  ~  version 22.10.1
+Launching `astro_wf.nf` [festering_minsky] DSL2 - revision: 213dbb16a9
+[4e/b890fe] process > get_meta (9)            [100%] 9 of 9, cached: 9 ✔
+[9b/7b5d6f] process > combine_frequencies (1) [100%] 3 of 3, cached: 3 ✔
+[e3/3983bf] process > find_candidates (2)     [100%] 3 of 3, cached: 3 ✔
+## These are from flattened_cands = find_candidates.out.transpose()
+[30deg_10deg, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_1.dat]
+[30deg_10deg, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_2.dat]
+[10deg_10deg, /work/e3/3983bf3b27049a2fbd281786dab0ed/cand_2.dat]
+[30deg_10deg, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_3.dat]
+[10deg_10deg, /work/e3/3983bf3b27049a2fbd281786dab0ed/cand_1.dat]
+## These are from combine_frequencies.out
+[30deg_10deg, /work/62/9e9decdb609c0cefd36586412f25f9/obs_30_10_20.dat]
+[10deg_10deg, /work/9b/7b5d6f6c6e4c139c46bf23330756ff/obs_30_10_20.dat]
+[30deg_10deg, /work/62/9e9decdb609c0cefd36586412f25f9/obs_30_10_20.dat]
+[10deg_10deg, /work/9b/7b5d6f6c6e4c139c46bf23330756ff/obs_30_10_20.dat]
+[20deg_10deg, /work/e4/f2898b75b400ed0fda4af3a53ced16/obs_10_30_20.dat]
+## These are cand_obs_pairs = combine_frequencies.out.cross(flattened_cands)
+[[30deg_10deg, /work/62/9e9decdb609c0cefd36586412f25f9/obs_30_10_20.dat], [30deg_10deg, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_2.dat]]
+[[30deg_10deg, /work/62/9e9decdb609c0cefd36586412f25f9/obs_30_10_20.dat], [30deg_10deg, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_3.dat]]
+[[10deg_10deg, /work/9b/7b5d6f6c6e4c139c46bf23330756ff/obs_30_10_20.dat], [10deg_10deg, /work/e3/3983bf3b27049a2fbd281786dab0ed/cand_1.dat]]
+[[10deg_10deg, /work/9b/7b5d6f6c6e4c139c46bf23330756ff/obs_30_10_20.dat], [10deg_10deg, /work/e3/3983bf3b27049a2fbd281786dab0ed/cand_2.dat]]
+[[30deg_10deg, /work/62/9e9decdb609c0cefd36586412f25f9/obs_30_10_20.dat], [30deg_10deg, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_1.dat]]
+~~~
+{: .output}
+
+This is *almost* what we want.
+Note that we have a duplicated key (pointin) in the output from the `cross` operator.
+We could make a compilcated input for our new process, but it's better to just manipulate the channel to remove the key and flatten the tuple.
+
+The relevant part of our workflow is now:
+~~~
+    // For each candidate file pair it with observation file
+    cand_obs_pairs = combine_frequencies.out.cross(flattened_cands)
+        //reformat to remove redundant key
+        .map{ [ it[0][0], it[0][1], it[1][1] ] }
+        // [ pointing, obs_file, candidate_file ]
+    cand_obs_pairs.view()
+~~~
+{: .language-groovy}
+
+And when we run we get the following:
+~~~
+$ nextflow run astro_wf.nf -resume
+N E X T F L O W  ~  version 22.10.1
+Launching `astro_wf.nf` [naughty_ramanujan] DSL2 - revision: a493dd4e99
+[4e/b890fe] process > get_meta (9)            [100%] 9 of 9, cached: 9 ✔
+[e4/f2898b] process > combine_frequencies (1) [100%] 3 of 3, cached: 3 ✔
+[e3/3983bf] process > find_candidates (2)     [100%] 3 of 3, cached: 3 ✔
+## These are from flattened_cands = find_candidates.out.transpose()
+[30deg_10deg, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_1.dat]
+[30deg_10deg, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_2.dat]
+[30deg_10deg, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_3.dat]
+[10deg_10deg, /work/e3/3983bf3b27049a2fbd281786dab0ed/cand_1.dat]
+[10deg_10deg, /work/e3/3983bf3b27049a2fbd281786dab0ed/cand_2.dat]
+## These are from combine_frequencies.out
+[20deg_10deg, /work/e4/f2898b75b400ed0fda4af3a53ced16/obs_10_30_20.dat]
+[10deg_10deg, /work/9b/7b5d6f6c6e4c139c46bf23330756ff/obs_30_10_20.dat]
+[30deg_10deg, /work/62/9e9decdb609c0cefd36586412f25f9/obs_30_10_20.dat]
+## These are cand_obs_pairs = combine_frequencies.out.cross(flattened_cands).map{ [ it[0][0], it[0][1], it[1][1] ] }
+[30deg_10deg, /work/62/9e9decdb609c0cefd36586412f25f9/obs_30_10_20.dat, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_1.dat]
+[30deg_10deg, /work/62/9e9decdb609c0cefd36586412f25f9/obs_30_10_20.dat, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_2.dat]
+[30deg_10deg, /work/62/9e9decdb609c0cefd36586412f25f9/obs_30_10_20.dat, /work/0a/039acf28cb01c737de9cd2f75c1cc8/cand_3.dat]
+[10deg_10deg, /work/9b/7b5d6f6c6e4c139c46bf23330756ff/obs_30_10_20.dat, /work/e3/3983bf3b27049a2fbd281786dab0ed/cand_1.dat]
+[10deg_10deg, /work/9b/7b5d6f6c6e4c139c46bf23330756ff/obs_30_10_20.dat, /work/e3/3983bf3b27049a2fbd281786dab0ed/cand_2.dat]
+~~~
+{: .output}
+
+We now make another dummy process to work on the candidates.
+The resulting `.dat` file will normally contain some information about the candidate but for now it's an empty file.
+Note that even though we can predict the name of the outfile, we can use `*dat` to capture whatever is generated.
+By default NextFlow will not copy files that are inputs (eg `cand_1.dat` or `obs_30_10_20.dat`) to the output so our glob approach is safe here.
+If we wanted the inputs to be included there is an option for that (`includeInputs: true`).
+
+~~~
+process fold_cands {
+    // Fold the candidates on the given period and measure properties
+    // for example: SNR, DM, p, pdot, intensity
+    input:
+    tuple (val(point), file(obs), file(cand))
+
+    output:
+    tuple (val(point), file("*dat"))
+
+    script:
+    """
+    touch ${point}_${cand.baseName}.dat
+    """
+}
+~~~
+{: .language-groovy}
+
+Now we can update our workflow to run this process and view the output channel.
+
+~~~
+workflow {
+    // create metadata
+    get_meta( all_obs )
+    // collect all the files that have the same pointing
+    same_pointing = get_meta.out.groupTuple( by: 1 )
+    // Combine the frequencies so you have a single file with all frequencies
+    combine_frequencies( same_pointing )
+    // Look for periodic signals with an fft
+    find_candidates( combine_frequencies.out )
+    //find_candidates.out.view()
+    // transpose will "flatten" the cands so they have the format [ key, cand_file ]
+    flattened_cands = find_candidates.out.transpose()
+    // For each candidate file pair it with observation file
+    cand_obs_pairs = combine_frequencies.out.cross(flattened_cands)
+        //reformat to remove redundant key
+        .map{ [ it[0][0], it[0][1], it[1][1] ] }
+        // [ pointing, obs_file, candidate_file ]
+    // Process the candidate
+    fold_cands( cand_obs_pairs )
+    fold_cands.out.view()
+}
+~~~
+{: .language-groovy}
+
+Our output is looking a little more tidy this time.
+~~~
+$ nextflow run astro_wf.nf -resume
+N E X T F L O W  ~  version 22.10.1
+Launching `astro_wf.nf` [stupefied_watson] DSL2 - revision: 762707769d
+executor >  local (5)
+[4e/b890fe] process > get_meta (9)            [100%] 9 of 9, cached: 9 ✔
+[62/9e9dec] process > combine_frequencies (1) [100%] 3 of 3, cached: 3 ✔
+[0a/039acf] process > find_candidates (3)     [100%] 3 of 3, cached: 3 ✔
+[b0/0f1f30] process > fold_cands (2)          [100%] 5 of 5 ✔
+[30deg_10deg, /work/21/f0710dda186ddfe6212becc1197413/30deg_10deg_cand_2.dat]
+[30deg_10deg, /work/c0/5c1866812c6be0f5ddd212b25e122b/30deg_10deg_cand_1.dat]
+[30deg_10deg, /work/65/7124a1e4bacaf3256f5f0a1d9022f3/30deg_10deg_cand_3.dat]
+[10deg_10deg, /work/94/314719324a38d621893efbe315ac2a/10deg_10deg_cand_1.dat]
+[10deg_10deg, /work/b0/0f1f3005842f76d8c1a19e6c0fd004/10deg_10deg_cand_2.dat]
+~~~
+{: .output}
 
 ### Create a .config file
 This will create a bunch of useful analysis for your pipeline run when it completes.
