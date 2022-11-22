@@ -97,7 +97,7 @@ workflow {
 We run the above with `nextflow run astro_wf.nf` and it gives us the following:
 
 ~~~
-$ nextflow run astro_wf.nf 
+$ nextflow run astro_wf.nf
 N E X T F L O W  ~  version 22.10.1
 Launching `astro_wf.nf` [zen_einstein] DSL2 - revision: 5338dcdf52
 executor >  local (9)
@@ -156,7 +156,7 @@ workflow {
 We now re-run the workflow to make sure that we are getting the required channel 'shape'.
 
 ~~~
-$ nextflow run astro_wf.nf 
+$ nextflow run astro_wf.nf
 N E X T F L O W  ~  version 22.10.1
 Launching `astro_wf.nf` [fabulous_woese] DSL2 - revision: d4bc8976c3
 executor >  local (9)
@@ -225,7 +225,7 @@ workflow {
 
 Our output is now:
 ~~~
-$ nextflow run astro_wf.nf 
+$ nextflow run astro_wf.nf
 N E X T F L O W  ~  version 22.10.1
 Launching `astro_wf.nf` [romantic_rosalind] DSL2 - revision: cdeceec8f1
 executor >  local (12)
@@ -306,7 +306,7 @@ When I run I get the following output.
 Your output will differ because the number of candidates is random.
 Here you can see that I go zero candidates fro the 20deg_10_deg pointing, so there are just two items in my output channel.
 ~~~
-$ nextflow run astro_wf.nf 
+$ nextflow run astro_wf.nf
 N E X T F L O W  ~  version 22.10.1
 Launching `astro_wf.nf` [fervent_shockley] DSL2 - revision: 7a02379938
 executor >  local (15)
@@ -644,7 +644,7 @@ cands
 
 ### Create a .config file
 This will create a bunch of useful analysis for your pipeline run when it completes.
-See [next lesson]({{page.root}}{% link _episodes/05-Nextflow_Orchestration.md %}) for more about configuration files.
+See [next lesson]({{page.root}}{% link _episodes/06-Nextflow_Orchestration.md %}) for more about configuration files.
 
 > ## nextflow.config
 > ~~~

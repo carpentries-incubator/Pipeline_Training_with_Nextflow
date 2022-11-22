@@ -30,7 +30,7 @@ The hierarchy of how parameters are used is as follows:
 Having multiple places where parameters can be defined provides some flexibility but can be *super confusing* for anyone trying to modify or use the workflow.
 To reduce the confusion we recommend that a workflow keep the `.nf` file free of user configurable parameters, but instead keep them all in a `nextflow.config` file.
 
-As we noted in the [Nextflow Orchestration]({{ page.root }}{% link _episodes/05-Nextflow_Orchestration.md %}) episode,
+As we noted in the [Nextflow Orchestration]({{ page.root }}{% link _episodes/06-Nextflow_Orchestration.md %}) episode,
 it is important to remember to keep anything that is computer specific in the `nextflow.config`.
 This will ensure that your pipeline can be run on any computer (laptop, supercomputers or cloudcomputing) without having to edit the workflow script.
 It is much easier for a user to edit the `nextflow.config` file to run the pipeline how they see fit.
