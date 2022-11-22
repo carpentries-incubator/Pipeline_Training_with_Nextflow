@@ -534,6 +534,110 @@ executor >  local (5)
 ~~~
 {: .output}
 
+## Step 6: Run some ML on the folded candidates
+The output channel from the `fold_cands` is now nice and simple and it contains all the information we need to run our ML process.
+Again, we are using a bash script instead of the actual ML program, so we'll use a `shell`.
+Note also that we now have two outputs that we are tracking, that they are now directories, and that both are optional.
+Furthermore, this is the last process in our workflow so we add a new directive to the process called `publishDir` which tells NextFlow that we want to copy the outputs from this process to a different directory (not in the work directory).
+
+~~~
+process ML_thing {
+    // apply a machine learning algorithm to take the folded data and predict
+    // real (positve) or fake (negative) candidates
+    publishDir "cands/", mode: 'copy'
+
+    input:
+        tuple(val(point), file(candidates))
+
+    output:
+        path("positive/*"), optional: true
+        path("negative/*"), optional: true
+
+    shell:
+    '''
+    mkdir positive
+    mkdir negative
+    for f in !{candidates}; do
+        if [ $(( $RANDOM % 2 )) == 0 ]; then
+            mv $f positive/
+        else
+            mv $f negative/
+        fi
+    done
+    '''
+}
+~~~
+{: .language-groovy}
+
+We can tack this onto the end of the workflow and run!
+
+~~~
+workflow {
+    // create metadata
+    get_meta( all_obs )
+    // collect all the files that have the same pointing
+    same_pointing = get_meta.out.groupTuple( by: 1 )
+    // Combine the frequencies so you have a single file with all frequencies
+    combine_frequencies( same_pointing )
+    // Look for periodic signals with an fft
+    find_candidates( combine_frequencies.out )
+    //find_candidates.out.view()
+    // transpose will "flatten" the cands so they have the format [ key, cand_file ]
+    flattened_cands = find_candidates.out.transpose()
+    // For each candidate file pair it with observation file
+    cand_obs_pairs = combine_frequencies.out.cross(flattened_cands)
+        //reformat to remove redundant key
+        .map{ [ it[0][0], it[0][1], it[1][1] ] }
+        // [ pointing, obs_file, candidate_file ]
+    // Process the candidate
+    fold_cands( cand_obs_pairs )
+    // // Put the candidates through ML
+    ML_thing( fold_cands.out )
+}
+~~~
+{: .language-groovy}
+
+~~~
+$ nextflow run astro_wf.nf -resume
+N E X T F L O W  ~  version 22.10.1
+Launching `astro_wf.nf` [mad_swartz] DSL2 - revision: 2c5bab1faf
+executor >  local (5)
+[4e/b890fe] process > get_meta (9)            [100%] 9 of 9, cached: 9 ✔
+[e4/f2898b] process > combine_frequencies (3) [100%] 3 of 3, cached: 3 ✔
+[e3/3983bf] process > find_candidates (3)     [100%] 3 of 3, cached: 3 ✔
+[c0/5c1866] process > fold_cands (3)          [100%] 5 of 5, cached: 5 ✔
+[61/0371b5] process > ML_thing (5)            [100%] 5 of 5 ✔
+~~~
+{: .output}
+
+We have removed all the `.view()` commands so the output here is much nicer to read.
+If we want to see our results we look in the direcory `cands`
+
+~~~
+$ tree cands
+cands
+├── negative
+│   ├── 10deg_10deg_cand_1.dat
+│   ├── 10deg_10deg_cand_2.dat
+│   ├── 20deg_10deg_cand_1.dat
+│   ├── 20deg_10deg_cand_2.dat
+│   ├── 20deg_10deg_cand_3.dat
+│   ├── 30deg_10deg_cand_1.dat
+│   ├── 30deg_10deg_cand_2.dat
+│   └── 30deg_10deg_cand_3.dat
+└── positive
+    ├── 10deg_10deg_cand_1.dat
+    ├── 10deg_10deg_cand_3.dat
+    ├── 20deg_10deg_cand_1.dat
+    ├── 20deg_10deg_cand_2.dat
+    ├── 30deg_10deg_cand_1.dat
+    ├── 30deg_10deg_cand_2.dat
+    └── 30deg_10deg_cand_3.dat
+
+2 directories, 15 files
+~~~
+{: .output}
+
 ### Create a .config file
 This will create a bunch of useful analysis for your pipeline run when it completes.
 See [next lesson]({{page.root}}{% link _episodes/05-Nextflow_Orchestration.md %}) for more about configuration files.
