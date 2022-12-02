@@ -504,6 +504,9 @@ So we can set up or `nextflow.config` like so:
 // Remove the dashes because they break things later on
 host = "$HOSTNAME".replace("-", "")
 
+// If the above didn't work, the newer versions require:
+def host = "hostname".execute().text.trim().replace("-", "")
+
 if ( host.startsWith("garrawarla") ) {
     // Put all your garrawarla set up here
 
