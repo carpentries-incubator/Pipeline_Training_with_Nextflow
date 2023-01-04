@@ -60,7 +60,7 @@ title: "Nextflow Training"
 # in The Carpentries Incubator).
 #
 # For an Incubator workshop, uncomment the line below and add the URL of the lesson site.
-# incubator_lesson_site: "put the URL of the lesson being taught here"
+incubator_lesson_site: "https://carpentries-incubator.github.io/Pipeline_Training_with_Nextflow/"
 #
 # For an Incubator workshop, uncomment the line below and add the URL of your pre-workshop survey
 # incubator_pre_survey: "put the URL of your pre-workshop survey here"
